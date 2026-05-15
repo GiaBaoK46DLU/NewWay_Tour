@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --background: #fafaf7;
+  --foreground: #1f2937;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+  text-rendering: geometricPrecision;
+}
+
+::selection {
+  background: rgba(217, 164, 65, 0.35);
+}
+
+.container-page {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.section-title {
+  @apply text-3xl font-semibold tracking-tight text-ink sm:text-4xl lg:text-5xl;
+}
+
+.section-kicker {
+  @apply mb-3 text-sm font-semibold uppercase tracking-[0.22em] text-gold;
+}
