@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Dalat Trails | Tour du lịch Đà Lạt",
+  title: "NewWay Tourist | Tour du lịch Đà Lạt",
   description:
     "Website đặt tour Đà Lạt hiện đại với tour săn mây, Langbiang, thác Datanla, hồ Tuyền Lâm và city tour."
 };

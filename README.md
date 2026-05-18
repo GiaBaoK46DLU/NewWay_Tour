@@ -1,4 +1,4 @@
-# Dalat Trails
+# NewWay Tourist
 
 Website du lịch Đà Lạt dùng Next.js App Router, TypeScript, Tailwind CSS và Supabase cho Auth, Database, Storage.
 

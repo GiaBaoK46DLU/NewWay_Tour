@@ -18,7 +18,7 @@ export function Footer() {
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/12">
               <Leaf className="h-5 w-5" />
             </span>
-            <span className="text-xl font-bold">Dalat Trails</span>
+            <span className="text-xl font-bold">NewWay Tourist</span>
           </Link>
           <p className="max-w-md text-sm leading-7 text-white/72">
             Nền tảng đặt tour Đà Lạt cho đồ án cuối kỳ, tập trung vào trải
@@ -74,13 +74,13 @@ export function Footer() {
             </p>
             <p className="flex gap-3">
               <Mail className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
-              hello@dalattrails.vn
+              hello@newwaytourist.vn
             </p>
           </div>
         </div>
       </div>
       <div className="border-t border-white/10 py-5 text-center text-xs text-white/55">
-        © 2026 Dalat Trails. Built with Next.js, Tailwind CSS and Supabase.
+        © 2026 NewWay Tourist. Built with Next.js, Tailwind CSS and Supabase.
       </div>
     </footer>
   );

@@ -20,7 +20,7 @@ export function Header() {
           </span>
           <span>
             <span className="block text-lg font-bold leading-5 text-ink">
-              Dalat Trails
+              NewWay Tourist
             </span>
             <span className="text-xs font-medium text-mist">Travel booking</span>
           </span>

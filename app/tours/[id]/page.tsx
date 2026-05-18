@@ -6,13 +6,14 @@ import { formatPrice } from "@/lib/utils";
 import { getTourBySlug } from "@/lib/tours";
 
 type TourDetailPageProps = {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 };
 
 export default async function TourDetailPage({ params }: TourDetailPageProps) {
-  const tour = await getTourBySlug(params.id);
+  const { id } = await params;
+  const tour = await getTourBySlug(id);
 
   if (!tour) {
     notFound();

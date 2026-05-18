@@ -3,17 +3,18 @@ import { TourCard } from "@/components/cards/tour-card";
 import { getTours } from "@/lib/tours";
 
 type ToursPageProps = {
-  searchParams: {
+  searchParams: Promise<{
     q?: string;
     type?: string;
     price?: string;
-  };
+  }>;
 };
 
 export default async function ToursPage({ searchParams }: ToursPageProps) {
+  const filters = await searchParams;
   const tours = await getTours();
-  const query = searchParams.q?.toLowerCase().trim();
-  const maxPrice = Number(searchParams.price || 0);
+  const query = filters.q?.toLowerCase().trim();
+  const maxPrice = Number(filters.price || 0);
 
   const filteredTours = tours.filter((tour) => {
     const matchesQuery = query
@@ -22,9 +23,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
           .toLowerCase()
           .includes(query)
       : true;
-    const matchesType = searchParams.type
-      ? tour.tour_type === searchParams.type
-      : true;
+    const matchesType = filters.type ? tour.tour_type === filters.type : true;
     const matchesPrice = maxPrice ? tour.price <= maxPrice : true;
 
     return matchesQuery && matchesType && matchesPrice;

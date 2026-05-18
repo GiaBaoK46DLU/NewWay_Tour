@@ -6,7 +6,7 @@ export default function ContactPage() {
           <p className="section-kicker">Liên hệ</p>
           <h1 className="section-title">Cần tư vấn lịch trình Đà Lạt?</h1>
           <p className="mt-5 text-base leading-7 text-mist">
-            Gửi thông tin của bạn, đội ngũ Dalat Trails sẽ phản hồi để tư vấn
+            Gửi thông tin của bạn, đội ngũ NewWay Tourist sẽ phản hồi để tư vấn
             tour, ngày đi và lịch trình phù hợp.
           </p>
         </div>
