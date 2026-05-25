@@ -1,37 +1,71 @@
 # NewWay Tourist
 
-Website du lịch Đà Lạt dùng Next.js App Router, TypeScript, Tailwind CSS và Supabase cho Auth, Database, Storage.
+Full-stack Da Lat tourism website built with Next.js App Router, TypeScript, Tailwind CSS, and Supabase (Auth, Database, Storage).
 
-## Chạy local
+## 1. Run locally (without Docker)
 
 ```bash
 npm install
 npm run dev
 ```
 
-Mở `http://localhost:3000`.
+Open `http://localhost:3000`.
 
-## Cấu hình Supabase
+## 2. Supabase setup
 
-1. Tạo project trên Supabase.
-2. Copy `.env.example` thành `.env.local`.
-3. Điền:
+1. Create a Supabase project.
+2. Copy `.env.example` to `.env.local`.
+3. Fill env values:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=...
-NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-or-publishable-key
 ```
 
-4. Mở Supabase SQL Editor và chạy toàn bộ file `supabase/schema.sql`.
-5. Vào Authentication, bật Email provider.
-6. Đăng ký tại `/register`, sau đó vào `/dashboard`.
+4. Run SQL in `supabase/schema.sql`.
+5. Enable Email provider in Supabase Auth.
+6. Test `/register`, `/login`, `/dashboard`.
 
-## Storage
+## 3. Run with Docker Compose
 
-File SQL tạo bucket public `tour-images` và policy cho user đã đăng nhập upload ảnh tour trong dashboard.
+Requirements:
+- Docker Desktop with `docker-compose` available.
 
-## Deploy gợi ý
+Commands:
 
-- Build kiểm tra: `npm run build`.
-- Docker bước tiếp theo: thêm `Dockerfile` dùng Node 20, build Next.js, expose port `3000`.
-- Docker Compose bước tiếp theo: tạo service app, mount `.env.production`, reverse proxy qua Nginx/Caddy trên VPS.
+```bash
+docker-compose up --build
+```
+
+App URL:
+
+```text
+http://localhost:3000
+```
+
+Stop:
+
+```bash
+docker-compose down
+```
+
+## 4. Manual Docker commands
+
+Build image:
+
+```bash
+docker build -t newway-tourist:latest .
+```
+
+Run container:
+
+```bash
+docker run --name newway-tourist -p 3000:3000 --env-file .env.local newway-tourist:latest
+```
+
+## 5. Notes for VPS deployment
+
+1. Copy project to VPS.
+2. Create `.env.local` on VPS with production Supabase values.
+3. Run `docker-compose up -d --build`.
+4. Put Nginx or Caddy in front for domain + SSL.
