@@ -2,7 +2,7 @@
 -- Replace with your real admin email:
 update public.profiles
 set role = 'admin'
-where email = 'your-admin-email@example.com';
+where email = 'dlgb260704@gmail.com';
 
 -- Verify:
 select id, email, role
