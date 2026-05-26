@@ -1,15 +1,34 @@
 import { AuthForm } from "@/components/forms/auth-form";
 import { login } from "@/lib/actions/auth";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{
+    error?: string;
+    registered?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const query = await searchParams;
+
   return (
     <section className="py-16 lg:py-24">
       <div className="container-page grid place-items-center">
         <div className="w-full max-w-md rounded-3xl border border-forest/10 bg-white p-8 shadow-soft">
-          <p className="section-kicker">Tài khoản</p>
+          <p className="section-kicker">Tai khoan</p>
           <h1 className="mb-7 text-3xl font-semibold tracking-tight text-ink">
-            Đăng nhập quản trị
+            Dang nhap quan tri
           </h1>
+          {query.registered ? (
+            <p className="mb-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              Dang ky thanh cong. Hay dang nhap de tiep tuc.
+            </p>
+          ) : null}
+          {query.error === "admin-required" ? (
+            <p className="mb-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              Tai khoan nay khong co quyen quan tri. Chi admin moi vao dashboard.
+            </p>
+          ) : null}
           <AuthForm action={login} mode="login" />
         </div>
       </div>

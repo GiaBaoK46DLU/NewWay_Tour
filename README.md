@@ -24,7 +24,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-or-publishable-key
 
 4. Run SQL in `supabase/schema.sql`.
 5. Enable Email provider in Supabase Auth.
-6. Test `/register`, `/login`, `/dashboard`.
+6. Register a normal account at `/register`.
+7. If your database is already running, apply role migration with `supabase/rls-admin-migration.sql`.
+8. Promote admin role by running `supabase/promote-admin.sql` (replace the email first).
+9. Login with that admin account to access `/dashboard`.
 
 ## 3. Run with Docker Compose
 
@@ -42,6 +45,9 @@ App URL:
 ```text
 http://localhost:3000
 ```
+
+Admin rule:
+- Only accounts with `profiles.role = 'admin'` can access `/dashboard` and manage tours/bookings.
 
 Stop:
 

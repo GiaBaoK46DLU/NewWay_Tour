@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
 
@@ -59,7 +59,7 @@ function getTourPayload(formData: FormData, imageUrl: string) {
 }
 
 export async function createTour(formData: FormData) {
-  await requireUser();
+  await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -77,7 +77,7 @@ export async function createTour(formData: FormData) {
 }
 
 export async function updateTour(formData: FormData) {
-  await requireUser();
+  await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -98,7 +98,7 @@ export async function updateTour(formData: FormData) {
 }
 
 export async function deleteTour(formData: FormData) {
-  await requireUser();
+  await requireAdmin();
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LayoutDashboard, LogOut, MapPinned, Ticket } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
-import { requireUser } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 
 const dashboardLinks = [
   { href: "/dashboard", label: "Tổng quan", icon: LayoutDashboard },
@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requireUser();
+  const { user } = await requireAdmin();
 
   return (
     <section className="bg-cream py-10 lg:py-12">

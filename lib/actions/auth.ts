@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getCurrentUserRole } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function login(_: unknown, formData: FormData) {
@@ -18,7 +19,16 @@ export async function login(_: unknown, formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const role = await getCurrentUserRole(user.id);
+  redirect(role === "admin" ? "/dashboard" : "/");
 }
 
 export async function register(_: unknown, formData: FormData) {
@@ -36,7 +46,7 @@ export async function register(_: unknown, formData: FormData) {
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect("/login?registered=1");
 }
 
 export async function logout() {
