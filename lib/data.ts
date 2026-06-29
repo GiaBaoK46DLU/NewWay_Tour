@@ -11,8 +11,7 @@ export const sampleTours: Tour[] = [
     duration: "1 ngày",
     price: 690000,
     rating: 4.9,
-    image_url:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=85",
+    image_url: "/images/tours/cau-dat.jpg",
     itinerary: [
       "04:30 đón khách tại khách sạn trung tâm Đà Lạt",
       "05:30 săn mây và ngắm bình minh tại Cầu Đất",
@@ -39,8 +38,7 @@ export const sampleTours: Tour[] = [
     duration: "1 ngày",
     price: 820000,
     rating: 4.8,
-    image_url:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=85",
+    image_url: "/images/tours/langbiang.jpg",
     itinerary: [
       "08:00 đón khách tại khách sạn",
       "09:00 tham quan khu du lịch Langbiang",
@@ -62,8 +60,7 @@ export const sampleTours: Tour[] = [
     duration: "Nửa ngày",
     price: 550000,
     rating: 4.7,
-    image_url:
-      "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1400&q=85",
+    image_url: "/images/tours/datanla.jpg",
     itinerary: [
       "08:30 đón khách tại trung tâm",
       "09:00 trải nghiệm máng trượt Datanla",
@@ -85,8 +82,7 @@ export const sampleTours: Tour[] = [
     duration: "1 ngày",
     price: 760000,
     rating: 4.8,
-    image_url:
-      "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1400&q=85",
+    image_url: "/images/tours/tuyen-lam.jpg",
     itinerary: [
       "08:00 đón khách",
       "09:00 dạo hồ Tuyền Lâm và rừng thông",
@@ -108,8 +104,7 @@ export const sampleTours: Tour[] = [
     duration: "1 ngày",
     price: 640000,
     rating: 4.6,
-    image_url:
-      "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1400&q=85",
+    image_url: "/images/tours/xuan-huong.jpg",
     itinerary: [
       "08:00 đón khách",
       "08:30 hồ Xuân Hương và quảng trường Lâm Viên",
@@ -131,8 +126,7 @@ export const sampleTours: Tour[] = [
     duration: "2 ngày 1 đêm",
     price: 1490000,
     rating: 4.9,
-    image_url:
-      "https://images.unsplash.com/photo-1478131143081-80f7f84ca84d?auto=format&fit=crop&w=1400&q=85",
+    image_url: "/images/tours/rung-thong.jpg",
     itinerary: [
       "Ngày 1: đón khách, trekking nhẹ, dựng trại",
       "Ngày 1: BBQ tối và lửa trại",
@@ -151,8 +145,7 @@ export const destinations: Destination[] = [
     name: "Hồ Xuân Hương",
     slug: "ho-xuan-huong",
     description: "Biểu tượng trung tâm Đà Lạt, phù hợp dạo bộ, đạp xe và ngắm hoàng hôn.",
-    image_url:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=85",
+    image_url: "/images/destinations/ho-xuan-huong.jpg",
     highlights: "Trung tâm thành phố"
   },
   {
@@ -160,8 +153,7 @@ export const destinations: Destination[] = [
     name: "Đồi chè Cầu Đất",
     slug: "doi-che-cau-dat",
     description: "Không gian xanh rộng, nổi tiếng với bình minh, biển mây và nông trại trà.",
-    image_url:
-      "https://images.unsplash.com/photo-1495578942200-c5f5d2137def?auto=format&fit=crop&w=1200&q=85",
+    image_url: "/images/destinations/doi-che-cau-dat.jpg",
     highlights: "Săn mây"
   },
   {
@@ -169,8 +161,7 @@ export const destinations: Destination[] = [
     name: "Langbiang",
     slug: "langbiang",
     description: "Điểm ngắm toàn cảnh thành phố và trải nghiệm văn hóa bản địa đặc trưng.",
-    image_url:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=85",
+    image_url: "/images/destinations/langbiang.jpg",
     highlights: "Núi cao"
   },
   {
@@ -178,8 +169,7 @@ export const destinations: Destination[] = [
     name: "Thác Datanla",
     slug: "thac-datanla",
     description: "Thác nước nổi tiếng với máng trượt, rừng thông và hoạt động mạo hiểm.",
-    image_url:
-      "https://images.unsplash.com/photo-1508459855340-fb63ac591728?auto=format&fit=crop&w=1200&q=85",
+    image_url: "/images/destinations/thac-datanla.jpg",
     highlights: "Mạo hiểm"
   },
   {
@@ -187,8 +177,7 @@ export const destinations: Destination[] = [
     name: "Hồ Tuyền Lâm",
     slug: "ho-tuyen-lam",
     description: "Mặt hồ rộng, rừng thông và resort yên tĩnh cho hành trình nghỉ dưỡng.",
-    image_url:
-      "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=85",
+    image_url: "/images/destinations/ho-tuyen-lam.jpg",
     highlights: "Nghỉ dưỡng"
   }
 ];
