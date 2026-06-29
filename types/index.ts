@@ -11,7 +11,10 @@ export type Tour = {
   itinerary: string[];
   included_services: string[];
   tour_type?: string;
+  capacity?: number;
   created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
 };
 
 export type Destination = {
@@ -41,7 +44,10 @@ export type Booking = {
   phone: string;
   travel_date: string;
   guests: number;
-  note?: string;
+  note?: string | null;
   status: "new" | "confirmed" | "cancelled";
   created_at?: string;
+  updated_at?: string;
+  cancelled_at?: string | null;
+  tours?: { id: string; title: string };
 };

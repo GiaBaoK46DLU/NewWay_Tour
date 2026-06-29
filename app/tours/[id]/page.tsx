@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, CheckCircle2, Clock3, MapPin, Star } from "lucide-react";
-import { createBooking } from "@/lib/actions/bookings";
+import { CheckCircle2, Clock3, MapPin, Star } from "lucide-react";
+import { BookingForm } from "@/components/forms/booking-form";
 import { formatPrice } from "@/lib/utils";
 import { getTourBySlug } from "@/lib/tours";
 
@@ -95,59 +95,7 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
             <p className="mt-1 text-3xl font-bold text-forest">
               {formatPrice(tour.price)}
             </p>
-            <form action={createBooking} className="mt-7 grid gap-4">
-              <input name="tour_id" type="hidden" value={tour.id} />
-              <input
-                className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
-                name="full_name"
-                placeholder="Họ và tên"
-                required
-              />
-              <input
-                className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
-                name="email"
-                placeholder="Email"
-                required
-                type="email"
-              />
-              <input
-                className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
-                name="phone"
-                placeholder="Số điện thoại"
-                required
-              />
-              <label className="grid gap-2 text-sm font-semibold text-ink">
-                Ngày đi
-                <span className="relative">
-                  <CalendarDays className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-mist" />
-                  <input
-                    className="h-12 w-full rounded-2xl border border-forest/10 bg-paper pl-12 pr-4 text-sm outline-none focus:border-forest"
-                    name="travel_date"
-                    required
-                    type="date"
-                  />
-                </span>
-              </label>
-              <input
-                className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
-                min="1"
-                name="guests"
-                placeholder="Số khách"
-                required
-                type="number"
-              />
-              <textarea
-                className="min-h-28 rounded-2xl border border-forest/10 bg-paper p-4 text-sm outline-none focus:border-forest"
-                name="note"
-                placeholder="Ghi chú thêm"
-              />
-              <button
-                className="h-12 rounded-full bg-gradient-to-r from-gold to-earth text-sm font-bold text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-soft"
-                type="submit"
-              >
-                Gửi yêu cầu đặt tour
-              </button>
-            </form>
+            <BookingForm tourId={tour.id} />
           </aside>
         </div>
       </section>
