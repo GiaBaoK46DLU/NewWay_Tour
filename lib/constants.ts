@@ -111,7 +111,15 @@ export const AUTH_ERROR_MESSAGES = {
 export const AUTH_VALIDATION = {
   MIN_PASSWORD_LENGTH: 6,
   MAX_EMAIL_LENGTH: 254,
+  MIN_USERNAME_LENGTH: 2,
+  MAX_USERNAME_LENGTH: 50,
   EMAIL_REGEX: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/
+} as const;
+
+export const AUTH_FIELD_ERRORS = {
+  EMAIL_INVALID: "Vui lòng nhập email hợp lệ.",
+  PASSWORD_MIN: "Mật khẩu phải có tối thiểu 6 ký tự.",
+  USERNAME_INVALID: "Vui lòng nhập tên người dùng (2-50 ký tự)."
 } as const;
 
 export const USER_ROLES = {

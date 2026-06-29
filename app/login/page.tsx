@@ -17,7 +17,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="w-full max-w-md rounded-3xl border border-forest/10 bg-white p-8 shadow-soft">
           <p className="section-kicker">Tài khoản</p>
           <h1 className="mb-7 text-3xl font-semibold tracking-tight text-ink">
-            Đăng nhập quản trị
+            Đăng nhập
           </h1>
           {query.registered ? (
             <p className="mb-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">

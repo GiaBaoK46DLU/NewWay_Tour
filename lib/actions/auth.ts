@@ -66,6 +66,11 @@ export async function register(_: unknown, formData: FormData) {
 
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
+  const username = String(formData.get("username") || "").trim();
+
+  if (!username || username.length < 2 || username.length > 50) {
+    return { error: "Vui lòng nhập tên người dùng (2-50 ký tự)." };
+  }
 
   if (!email || !validateEmail(email)) {
     return { error: "Vui lòng nhập email hợp lệ." };
@@ -80,6 +85,7 @@ export async function register(_: unknown, formData: FormData) {
       email,
       password,
       options: {
+        data: { username },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
       }
     });

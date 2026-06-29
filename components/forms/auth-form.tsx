@@ -32,6 +32,17 @@ export function AuthForm({ mode, action }: AuthFormProps) {
 
   return (
     <form action={formAction} className="grid gap-4">
+      {mode === "register" ? (
+        <input
+          className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
+          maxLength={50}
+          minLength={2}
+          name="username"
+          placeholder="Tên người dùng"
+          required
+          type="text"
+        />
+      ) : null}
       <input
         className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
         name="email"

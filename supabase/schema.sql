@@ -35,6 +35,7 @@ create table if not exists public.bookings (
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
+  username text,
   role text not null default 'user' check (role in ('user', 'admin')),
   created_at timestamptz not null default now()
 );
@@ -46,10 +47,16 @@ security definer
 set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, email, role)
-  values (new.id, new.email, 'user')
+  insert into public.profiles (id, email, username, role)
+  values (
+    new.id,
+    new.email,
+    nullif(new.raw_user_meta_data ->> 'username', ''),
+    'user'
+  )
   on conflict (id) do update
-  set email = excluded.email;
+  set email = excluded.email,
+      username = coalesce(excluded.username, public.profiles.username);
   return new;
 end;
 $$;
