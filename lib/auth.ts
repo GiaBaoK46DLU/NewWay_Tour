@@ -5,6 +5,13 @@ import { USER_ROLES } from "@/lib/constants";
 
 export type AppRole = "admin" | "user";
 
+export type Profile = {
+  id: string;
+  email: string;
+  username: string | null;
+  role: AppRole;
+};
+
 /**
  * Get the currently authenticated user.
  * Returns null if user is not authenticated or Supabase is not configured.
@@ -21,6 +28,42 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   return user;
+}
+
+/**
+ * Get the current user's profile (username, email, role).
+ * Returns null when not authenticated or Supabase is not configured.
+ * Falls back to auth data if the profile row is missing (e.g. legacy account).
+ */
+export async function getCurrentProfile(): Promise<Profile | null> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return null;
+  }
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, email, username, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role = data?.role === USER_ROLES.ADMIN ? USER_ROLES.ADMIN : USER_ROLES.USER;
+
+  return {
+    id: user.id,
+    email: data?.email ?? user.email ?? "",
+    username: data?.username ?? null,
+    role: role as AppRole
+  };
 }
 
 /**
