@@ -7,6 +7,7 @@ type ToursPageProps = {
     q?: string;
     type?: string;
     price?: string;
+    date?: string;
   }>;
 };
 
@@ -15,6 +16,7 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
   const tours = await getTours();
   const query = filters.q?.toLowerCase().trim();
   const maxPrice = Number(filters.price || 0);
+  const travelDate = filters.date ? new Date(filters.date) : null;
 
   const filteredTours = tours.filter((tour) => {
     const matchesQuery = query
@@ -24,9 +26,10 @@ export default async function ToursPage({ searchParams }: ToursPageProps) {
           .includes(query)
       : true;
     const matchesType = filters.type ? tour.tour_type === filters.type : true;
-    const matchesPrice = maxPrice ? tour.price <= maxPrice : true;
+    const matchesPrice = maxPrice > 0 ? tour.price <= maxPrice : true;
+    const matchesDate = travelDate ? !isNaN(travelDate.getTime()) : true;
 
-    return matchesQuery && matchesType && matchesPrice;
+    return matchesQuery && matchesType && matchesPrice && matchesDate;
   });
 
   return (

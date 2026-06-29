@@ -1,11 +1,13 @@
 import Image from "next/image";
 import { Trash2 } from "lucide-react";
+import { requireAdmin } from "@/lib/auth";
 import { TourAdminForm } from "@/components/forms/tour-admin-form";
 import { createTour, deleteTour, updateTour } from "@/lib/actions/tours";
 import { getTours } from "@/lib/tours";
 import { formatPrice } from "@/lib/utils";
 
 export default async function DashboardToursPage() {
+  await requireAdmin();
   const tours = await getTours(false);
 
   return (

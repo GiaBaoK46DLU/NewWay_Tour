@@ -1,6 +1,8 @@
+import { requireAdmin } from "@/lib/auth";
 import { getBookings } from "@/lib/tours";
 
 export default async function DashboardBookingsPage() {
+  await requireAdmin();
   const bookings = await getBookings();
 
   return (

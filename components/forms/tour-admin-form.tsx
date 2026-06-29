@@ -17,6 +17,8 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
           defaultValue={tour?.title}
+          maxLength={200}
+          minLength={3}
           name="title"
           placeholder="Tên tour"
           required
@@ -25,12 +27,17 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
           defaultValue={tour?.slug}
           name="slug"
+          pattern="^[a-z0-9-]+$"
           placeholder="Slug"
+          required
+          title="Slug chỉ được chứa chữ cái thường, số và dấu gạch ngang"
         />
       </div>
       <textarea
         className="min-h-24 rounded-2xl border border-forest/10 bg-paper p-4 text-sm outline-none focus:border-forest"
         defaultValue={tour?.description}
+        maxLength={5000}
+        minLength={10}
         name="description"
         placeholder="Mô tả"
         required
@@ -53,7 +60,8 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
           defaultValue={tour?.price}
-          min="0"
+          min="1"
+          max="100000000"
           name="price"
           placeholder="Giá"
           required
