@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Leaf } from "lucide-react";
+import { Leaf, User } from "lucide-react";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { getCurrentProfile } from "@/lib/auth";
 
 const navItems = [
   { href: "/", label: "Trang chủ" },
@@ -10,7 +11,10 @@ const navItems = [
   { href: "/contact", label: "Liên hệ" }
 ];
 
-export function Header() {
+export async function Header() {
+  const profile = await getCurrentProfile();
+  const displayName = profile ? profile.username || profile.email : null;
+
   return (
     <header className="sticky top-0 z-50 border-b border-forest/10 bg-paper/85 backdrop-blur-xl">
       <div className="container-page flex h-20 items-center justify-between">
@@ -39,12 +43,25 @@ export function Header() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            className="text-sm font-semibold text-forest transition hover:text-earth"
-            href="/login"
-          >
-            Đăng nhập
-          </Link>
+          {displayName ? (
+            <Link
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-forest/15 bg-cream px-4 text-sm font-semibold text-forest transition hover:border-forest/30 hover:text-earth"
+              href="/profile"
+              title="Hồ sơ của tôi"
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-forest text-white">
+                <User className="h-4 w-4" />
+              </span>
+              <span className="max-w-[140px] truncate">{displayName}</span>
+            </Link>
+          ) : (
+            <Link
+              className="text-sm font-semibold text-forest transition hover:text-earth"
+              href="/login"
+            >
+              Đăng nhập
+            </Link>
+          )}
           <Link
             className="inline-flex h-11 items-center justify-center rounded-full bg-forest px-5 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-soft"
             href="/tours"
@@ -53,7 +70,7 @@ export function Header() {
           </Link>
         </div>
 
-        <MobileNav />
+        <MobileNav displayName={displayName} />
       </div>
     </header>
   );

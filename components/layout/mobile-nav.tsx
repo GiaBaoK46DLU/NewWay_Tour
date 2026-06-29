@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { LogOut, Menu, User, X } from "lucide-react";
 import { useState } from "react";
+import { logout } from "@/lib/actions/auth";
 
 const navItems = [
   { href: "/", label: "Trang chủ" },
@@ -12,7 +13,7 @@ const navItems = [
   { href: "/contact", label: "Liên hệ" }
 ];
 
-export function MobileNav() {
+export function MobileNav({ displayName }: { displayName?: string | null }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -39,13 +40,36 @@ export function MobileNav() {
               </Link>
             ))}
           </nav>
-          <Link
-            className="mt-3 flex h-11 items-center justify-center rounded-full bg-forest text-sm font-semibold text-white"
-            href="/login"
-            onClick={() => setOpen(false)}
-          >
-            Đăng nhập
-          </Link>
+          {displayName ? (
+            <div className="mt-3 grid gap-2">
+              <Link
+                className="flex items-center gap-2 rounded-2xl border border-forest/15 bg-cream px-4 py-3 text-sm font-semibold text-forest"
+                href="/profile"
+                onClick={() => setOpen(false)}
+              >
+                <User className="h-4 w-4" />
+                <span className="truncate">{displayName}</span>
+              </Link>
+              <form action={logout}>
+                <button
+                  className="flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-earth hover:bg-cream"
+                  onClick={() => setOpen(false)}
+                  type="submit"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Đăng xuất
+                </button>
+              </form>
+            </div>
+          ) : (
+            <Link
+              className="mt-3 flex h-11 items-center justify-center rounded-full bg-forest text-sm font-semibold text-white"
+              href="/login"
+              onClick={() => setOpen(false)}
+            >
+              Đăng nhập
+            </Link>
+          )}
         </div>
       ) : null}
     </div>
