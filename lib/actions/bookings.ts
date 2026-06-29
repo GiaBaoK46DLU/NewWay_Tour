@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import {
+  BOOKING_STATUS,
+  BOOKING_VALIDATION,
+  BOOKING_ERROR_MESSAGES,
+  BOOKING_FIELD_ERRORS,
+  QUERY_PARAMS,
+  DATABASE_CONFIG
+} from "@/lib/constants";
 
 export interface BookingFormState {
   status: "idle" | "error";
@@ -18,11 +26,11 @@ export interface BookingFormState {
   };
 }
 
-const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/;
-const PHONE_REGEX = /^\+?[0-9\s\.\-()]{10,15}$/;
-const MAX_GUESTS = 100;
-const MAX_NOTE_LENGTH = 5000;
-
+/**
+ * Validate booking form data before submission.
+ * Checks all fields for proper format, length, and business rules.
+ * Travel dates are normalized to UTC midnight for consistent comparison.
+ */
 function validateBooking(payload: {
   tour_id: string;
   full_name: string;
@@ -35,53 +43,58 @@ function validateBooking(payload: {
   const errors: NonNullable<BookingFormState["errors"]> = {};
 
   if (!payload.tour_id || payload.tour_id.trim().length === 0) {
-    errors.tour_id = "Không xác định được tour. Vui lòng thử lại.";
+    errors.tour_id = BOOKING_FIELD_ERRORS.TOUR_ID;
   }
 
-  if (!payload.full_name || payload.full_name.trim().length < 2) {
-    errors.full_name = "Vui lòng nhập họ và tên hợp lệ (tối thiểu 2 ký tự).";
+  if (!payload.full_name || payload.full_name.trim().length < BOOKING_VALIDATION.MIN_NAME_LENGTH) {
+    errors.full_name = BOOKING_FIELD_ERRORS.FULL_NAME;
   }
 
   if (!payload.email) {
-    errors.email = "Vui lòng nhập email.";
-  } else if (!EMAIL_REGEX.test(payload.email)) {
-    errors.email = "Email không đúng định dạng (vd: example@domain.com).";
+    errors.email = BOOKING_FIELD_ERRORS.EMAIL_REQUIRED;
+  } else if (!BOOKING_VALIDATION.EMAIL_REGEX.test(payload.email)) {
+    errors.email = BOOKING_FIELD_ERRORS.EMAIL_INVALID;
   }
 
   if (!payload.phone) {
-    errors.phone = "Vui lòng nhập số điện thoại.";
-  } else if (!PHONE_REGEX.test(payload.phone)) {
-    errors.phone = "Số điện thoại không hợp lệ. Sử dụng định dạng: +84 9xxxxxxxx hoặc 09xxxxxxxx.";
+    errors.phone = BOOKING_FIELD_ERRORS.PHONE_REQUIRED;
+  } else if (!BOOKING_VALIDATION.PHONE_REGEX.test(payload.phone)) {
+    errors.phone = BOOKING_FIELD_ERRORS.PHONE_INVALID;
   }
 
   if (!payload.travel_date) {
-    errors.travel_date = "Vui lòng chọn ngày đi.";
+    errors.travel_date = BOOKING_FIELD_ERRORS.TRAVEL_DATE_REQUIRED;
   } else {
     const travelDate = new Date(payload.travel_date + "T00:00:00Z");
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
     if (Number.isNaN(travelDate.getTime())) {
-      errors.travel_date = "Ngày đi không hợp lệ.";
+      errors.travel_date = BOOKING_FIELD_ERRORS.TRAVEL_DATE_INVALID;
     } else if (travelDate < today) {
-      errors.travel_date = "Ngày đi phải từ hôm nay trở đi.";
+      errors.travel_date = BOOKING_FIELD_ERRORS.TRAVEL_DATE_PAST;
     }
   }
 
   if (!Number.isInteger(payload.guests)) {
-    errors.guests = "Số khách phải là số nguyên.";
+    errors.guests = BOOKING_FIELD_ERRORS.GUESTS_NOT_INTEGER;
   } else if (payload.guests < 1) {
-    errors.guests = "Số khách phải lớn hơn 0.";
-  } else if (payload.guests > MAX_GUESTS) {
-    errors.guests = `Số khách không được vượt quá ${MAX_GUESTS}.`;
+    errors.guests = BOOKING_FIELD_ERRORS.GUESTS_MIN;
+  } else if (payload.guests > BOOKING_VALIDATION.MAX_GUESTS) {
+    errors.guests = BOOKING_FIELD_ERRORS.GUESTS_MAX(BOOKING_VALIDATION.MAX_GUESTS);
   }
 
-  if (payload.note && payload.note.length > MAX_NOTE_LENGTH) {
-    errors.note = `Ghi chú không được vượt quá ${MAX_NOTE_LENGTH} ký tự.`;
+  if (payload.note && payload.note.length > BOOKING_VALIDATION.MAX_NOTE_LENGTH) {
+    errors.note = BOOKING_FIELD_ERRORS.NOTE_MAX_LENGTH(BOOKING_VALIDATION.MAX_NOTE_LENGTH);
   }
 
   return Object.keys(errors).length > 0 ? errors : undefined;
 }
 
+/**
+ * Server action to create a new booking.
+ * Validates all input, checks tour capacity, and inserts booking record.
+ * Prevents overbooking by querying existing non-cancelled bookings for same tour+date.
+ */
 export async function createBooking(
   _prevState: BookingFormState,
   formData: FormData
@@ -106,7 +119,7 @@ export async function createBooking(
   if (errors) {
     return {
       status: "error",
-      message: "Vui lòng kiểm tra lại thông tin đã nhập.",
+      message: BOOKING_ERROR_MESSAGES.GENERIC_VALIDATION_ERROR,
       errors
     };
   }
@@ -121,7 +134,7 @@ export async function createBooking(
     if (tourError || !tour) {
       return {
         status: "error",
-        message: "Tour không tồn tại. Vui lòng chọn tour khác."
+        message: BOOKING_ERROR_MESSAGES.INVALID_TOUR
       };
     }
 
@@ -131,13 +144,13 @@ export async function createBooking(
       .eq("tour_id", payload.tour_id)
       .eq("travel_date", payload.travel_date)
       .is("cancelled_at", null)
-      .neq("status", "cancelled");
+      .neq("status", BOOKING_STATUS.CANCELLED);
 
     if (countError) {
       console.error("Error checking capacity:", countError.message);
       return {
         status: "error",
-        message: "Không thể kiểm tra chỗ trống. Vui lòng thử lại sau."
+        message: BOOKING_ERROR_MESSAGES.CHECK_CAPACITY_FAILED
       };
     }
 
@@ -145,7 +158,7 @@ export async function createBooking(
     if (currentBooked > tour.capacity) {
       return {
         status: "error",
-        message: `Chỉ còn ${Math.max(0, tour.capacity - (bookedGuests || 0))} chỗ trống cho ngày đi này.`
+        message: BOOKING_ERROR_MESSAGES.CAPACITY_EXCEEDED(Math.max(0, tour.capacity - (bookedGuests || 0)))
       };
     }
 
@@ -157,28 +170,33 @@ export async function createBooking(
       travel_date: payload.travel_date,
       guests: payload.guests,
       note: payload.note || null,
-      status: "new"
+      status: BOOKING_STATUS.NEW
     });
 
     if (error) {
       console.error("Failed to create booking:", error.message);
       return {
         status: "error",
-        message: "Không thể gửi yêu cầu lúc này. Vui lòng thử lại sau."
+        message: BOOKING_ERROR_MESSAGES.CREATE_FAILED
       };
     }
   } catch (error) {
     console.error("Unexpected error while creating booking:", error);
     return {
       status: "error",
-      message: "Đã có lỗi xảy ra. Vui lòng thử lại sau."
+      message: BOOKING_ERROR_MESSAGES.UNEXPECTED_ERROR
     };
   }
 
   revalidatePath("/dashboard/bookings");
-  redirect("/tours?booking=success");
+  redirect(`/tours?${QUERY_PARAMS.BOOKING_ERROR}=${QUERY_PARAMS.BOOKING_SUCCESS}`);
 }
 
+/**
+ * Update booking status or cancel a booking.
+ * Cancellation sets cancelled_at timestamp for soft-delete pattern.
+ * Confirmation updates status field to "confirmed".
+ */
 export async function updateBookingStatus(
   bookingId: string,
   status: "confirmed" | "cancelled"
@@ -188,19 +206,21 @@ export async function updateBookingStatus(
   if (!supabase) {
     return {
       status: "error",
-      message: "Chưa cấu hình Supabase. Hãy thêm biến môi trường trước."
+      message: BOOKING_ERROR_MESSAGES.CREATE_FAILED
     };
   }
 
-  if (!bookingId || !/^[0-9a-f-]{36}$/i.test(bookingId)) {
+  if (!bookingId || !DATABASE_CONFIG.UUID_PATTERN.test(bookingId)) {
     return {
       status: "error",
-      message: "ID booking không hợp lệ."
+      message: BOOKING_ERROR_MESSAGES.INVALID_BOOKING_ID
     };
   }
 
   try {
-    const updateData = status === "cancelled" ? { cancelled_at: new Date().toISOString() } : { status: "confirmed" };
+    const updateData = status === BOOKING_STATUS.CANCELLED
+      ? { cancelled_at: new Date().toISOString() }
+      : { status: BOOKING_STATUS.CONFIRMED };
 
     const { error } = await supabase
       .from("bookings")
@@ -211,20 +231,20 @@ export async function updateBookingStatus(
       console.error(`Failed to ${status} booking:`, error.message);
       return {
         status: "error",
-        message: `Không thể ${status === "cancelled" ? "hủy" : "xác nhận"} booking. Vui lòng thử lại sau.`
+        message: BOOKING_ERROR_MESSAGES.UPDATE_FAILED(status)
       };
     }
 
     revalidatePath("/dashboard/bookings");
     return {
       status: "idle",
-      message: `Booking đã được ${status === "cancelled" ? "hủy" : "xác nhận"}.`
+      message: BOOKING_ERROR_MESSAGES.UPDATE_SUCCESS(status)
     };
   } catch (error) {
     console.error("Unexpected error updating booking:", error);
     return {
       status: "error",
-      message: "Đã có lỗi xảy ra. Vui lòng thử lại sau."
+      message: BOOKING_ERROR_MESSAGES.UNEXPECTED_ERROR
     };
   }
 }

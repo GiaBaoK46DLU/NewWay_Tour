@@ -1,4 +1,5 @@
 import type { Tour } from "@/types";
+import { TOUR_VALIDATION, TOUR_DEFAULTS } from "@/lib/constants";
 
 type TourAdminFormProps = {
   action: (formData: FormData) => Promise<void>;
@@ -17,8 +18,8 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
           defaultValue={tour?.title}
-          maxLength={200}
-          minLength={3}
+          maxLength={TOUR_VALIDATION.MAX_TITLE_LENGTH}
+          minLength={TOUR_VALIDATION.MIN_TITLE_LENGTH}
           name="title"
           placeholder="Tên tour"
           required
@@ -27,7 +28,7 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
           defaultValue={tour?.slug}
           name="slug"
-          pattern="^[a-z0-9-]+$"
+          pattern={TOUR_VALIDATION.SLUG_REGEX.source}
           placeholder="Slug"
           required
           title="Slug chỉ được chứa chữ cái thường, số và dấu gạch ngang"
@@ -36,8 +37,8 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
       <textarea
         className="min-h-24 rounded-2xl border border-forest/10 bg-paper p-4 text-sm outline-none focus:border-forest"
         defaultValue={tour?.description}
-        maxLength={5000}
-        minLength={10}
+        maxLength={TOUR_VALIDATION.MAX_DESCRIPTION_LENGTH}
+        minLength={TOUR_VALIDATION.MIN_DESCRIPTION_LENGTH}
         name="description"
         placeholder="Mô tả"
         required
@@ -60,8 +61,8 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
           defaultValue={tour?.price}
-          min="1"
-          max="100000000"
+          min={TOUR_VALIDATION.MIN_PRICE}
+          max={TOUR_VALIDATION.MAX_PRICE}
           name="price"
           placeholder="Giá"
           required
@@ -69,9 +70,9 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
         />
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
-          defaultValue={tour?.rating ?? 4.8}
-          max="5"
-          min="1"
+          defaultValue={tour?.rating ?? TOUR_DEFAULTS.RATING}
+          max={TOUR_VALIDATION.MAX_RATING}
+          min={TOUR_VALIDATION.MIN_RATING}
           name="rating"
           placeholder="Rating"
           step="0.1"
@@ -81,15 +82,12 @@ export function TourAdminForm({ action, tour, submitLabel }: TourAdminFormProps)
       <div className="grid gap-4 md:grid-cols-2">
         <select
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"
-          defaultValue={tour?.tour_type ?? "Khám phá"}
+          defaultValue={tour?.tour_type ?? TOUR_DEFAULTS.TYPE}
           name="tour_type"
         >
-          <option>Săn mây</option>
-          <option>Khám phá</option>
-          <option>Mạo hiểm</option>
-          <option>Nghỉ dưỡng</option>
-          <option>City tour</option>
-          <option>Camping</option>
+          {TOUR_DEFAULTS.TYPES.map((type) => (
+            <option key={type}>{type}</option>
+          ))}
         </select>
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"

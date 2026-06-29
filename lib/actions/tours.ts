@@ -6,65 +6,71 @@ import { randomUUID } from "crypto";
 import { requireAdmin } from "@/lib/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { slugify } from "@/lib/utils";
-
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
-const MAX_TITLE_LENGTH = 200;
-const MAX_DESCRIPTION_LENGTH = 5000;
-const MAX_ITINERARY_ITEMS = 20;
-const MAX_ITINERARY_ITEM_LENGTH = 300;
+import {
+  TOUR_VALIDATION,
+  TOUR_ERROR_MESSAGES,
+  TOUR_FIELD_ERRORS,
+  TOUR_DEFAULTS,
+  QUERY_PARAMS,
+  DATABASE_CONFIG
+} from "@/lib/constants";
 
 interface TourValidationErrors {
   [key: string]: string;
 }
 
+/**
+ * Validate tour data against business rules and constraints.
+ * Used by create and update operations to ensure data consistency.
+ * Validation mirrors database CHECK constraints for defense in depth.
+ */
 function validateTourData(payload: any): TourValidationErrors {
   const errors: TourValidationErrors = {};
 
-  if (!payload.title || payload.title.trim().length < 3) {
-    errors.title = "Tiêu đề phải có tối thiểu 3 ký tự.";
-  } else if (payload.title.length > MAX_TITLE_LENGTH) {
-    errors.title = `Tiêu đề không được vượt quá ${MAX_TITLE_LENGTH} ký tự.`;
+  if (!payload.title || payload.title.trim().length < TOUR_VALIDATION.MIN_TITLE_LENGTH) {
+    errors.title = TOUR_FIELD_ERRORS.TITLE_MIN;
+  } else if (payload.title.length > TOUR_VALIDATION.MAX_TITLE_LENGTH) {
+    errors.title = TOUR_FIELD_ERRORS.TITLE_MAX(TOUR_VALIDATION.MAX_TITLE_LENGTH);
   }
 
-  if (!payload.description || payload.description.trim().length < 10) {
-    errors.description = "Mô tả phải có tối thiểu 10 ký tự.";
-  } else if (payload.description.length > MAX_DESCRIPTION_LENGTH) {
-    errors.description = `Mô tả không được vượt quá ${MAX_DESCRIPTION_LENGTH} ký tự.`;
+  if (!payload.description || payload.description.trim().length < TOUR_VALIDATION.MIN_DESCRIPTION_LENGTH) {
+    errors.description = TOUR_FIELD_ERRORS.DESCRIPTION_MIN;
+  } else if (payload.description.length > TOUR_VALIDATION.MAX_DESCRIPTION_LENGTH) {
+    errors.description = TOUR_FIELD_ERRORS.DESCRIPTION_MAX(TOUR_VALIDATION.MAX_DESCRIPTION_LENGTH);
   }
 
   if (!payload.location || payload.location.trim().length === 0) {
-    errors.location = "Vui lòng nhập địa điểm.";
+    errors.location = TOUR_FIELD_ERRORS.LOCATION_REQUIRED;
   }
 
   if (!payload.duration || payload.duration.trim().length === 0) {
-    errors.duration = "Vui lòng nhập thời lượng.";
+    errors.duration = TOUR_FIELD_ERRORS.DURATION_REQUIRED;
   }
 
-  if (!payload.price || payload.price <= 0) {
-    errors.price = "Giá phải lớn hơn 0.";
-  } else if (payload.price > 100000000) {
-    errors.price = "Giá không hợp lệ.";
+  if (!payload.price || payload.price <= TOUR_VALIDATION.MIN_PRICE - 1) {
+    errors.price = TOUR_FIELD_ERRORS.PRICE_INVALID;
+  } else if (payload.price > TOUR_VALIDATION.MAX_PRICE) {
+    errors.price = TOUR_FIELD_ERRORS.PRICE_TOO_HIGH;
   }
 
-  if (!payload.rating || payload.rating < 0 || payload.rating > 5) {
-    errors.rating = "Xếp hạng phải nằm trong khoảng 0-5.";
+  if (!payload.rating || payload.rating < TOUR_VALIDATION.MIN_RATING || payload.rating > TOUR_VALIDATION.MAX_RATING) {
+    errors.rating = TOUR_FIELD_ERRORS.RATING_INVALID;
   }
 
   if (!payload.slug || payload.slug.trim().length === 0) {
-    errors.slug = "Slug không được để trống.";
-  } else if (!/^[a-z0-9-]+$/.test(payload.slug)) {
-    errors.slug = "Slug chỉ được chứa chữ cái thường, số và dấu gạch ngang.";
+    errors.slug = TOUR_FIELD_ERRORS.SLUG_REQUIRED;
+  } else if (!TOUR_VALIDATION.SLUG_REGEX.test(payload.slug)) {
+    errors.slug = TOUR_FIELD_ERRORS.SLUG_INVALID;
   }
 
-  if (payload.itinerary && payload.itinerary.length > MAX_ITINERARY_ITEMS) {
-    errors.itinerary = `Lịch trình không được vượt quá ${MAX_ITINERARY_ITEMS} mục.`;
+  if (payload.itinerary && payload.itinerary.length > TOUR_VALIDATION.MAX_ITINERARY_ITEMS) {
+    errors.itinerary = TOUR_FIELD_ERRORS.ITINERARY_MAX_ITEMS(TOUR_VALIDATION.MAX_ITINERARY_ITEMS);
   }
 
   if (payload.itinerary) {
     for (let i = 0; i < payload.itinerary.length; i++) {
-      if (payload.itinerary[i].length > MAX_ITINERARY_ITEM_LENGTH) {
-        errors.itinerary = `Mỗi mục lịch trình không được vượt quá ${MAX_ITINERARY_ITEM_LENGTH} ký tự.`;
+      if (payload.itinerary[i].length > TOUR_VALIDATION.MAX_ITINERARY_ITEM_LENGTH) {
+        errors.itinerary = TOUR_FIELD_ERRORS.ITINERARY_ITEM_MAX_LENGTH(TOUR_VALIDATION.MAX_ITINERARY_ITEM_LENGTH);
         break;
       }
     }
@@ -80,6 +86,12 @@ function getListValue(formData: FormData, key: string) {
     .filter(Boolean);
 }
 
+/**
+ * Upload tour image to Supabase storage.
+ * Validates MIME type and file size before upload.
+ * Uses UUID for filename to prevent race conditions on concurrent uploads.
+ * Returns fallback URL if upload fails or is skipped.
+ */
 async function uploadTourImage(formData: FormData, fallbackUrl = "") {
   const supabase = await createSupabaseServerClient();
   const image = formData.get("image");
@@ -88,11 +100,11 @@ async function uploadTourImage(formData: FormData, fallbackUrl = "") {
     return fallbackUrl;
   }
 
-  if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
+  if (!TOUR_VALIDATION.ALLOWED_IMAGE_TYPES.includes(image.type as any)) {
     return fallbackUrl;
   }
 
-  if (image.size > MAX_IMAGE_SIZE) {
+  if (image.size > TOUR_VALIDATION.MAX_IMAGE_SIZE) {
     return fallbackUrl;
   }
 
@@ -126,19 +138,23 @@ function getTourPayload(formData: FormData, imageUrl: string) {
     location: String(formData.get("location") || "").trim(),
     duration: String(formData.get("duration") || "").trim(),
     price: Number(formData.get("price") || 0),
-    rating: Number(formData.get("rating") || 4.8),
+    rating: Number(formData.get("rating") || TOUR_DEFAULTS.RATING),
     image_url: imageUrl || String(formData.get("image_url") || ""),
     itinerary: getListValue(formData, "itinerary"),
     included_services: getListValue(formData, "included_services"),
-    tour_type: String(formData.get("tour_type") || "Khám phá")
+    tour_type: String(formData.get("tour_type") || TOUR_DEFAULTS.TYPE)
   };
 }
 
+/**
+ * Server action to create a new tour.
+ * Requires admin authentication. Validates all tour data, uploads image, inserts record.
+ */
 export async function createTour(formData: FormData) {
   try {
     await requireAdmin();
   } catch {
-    redirect("/login?error=unauthorized");
+    redirect(`/login?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UNAUTHORIZED}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -152,7 +168,7 @@ export async function createTour(formData: FormData) {
 
   const validationErrors = validateTourData(payload);
   if (Object.keys(validationErrors).length > 0) {
-    redirect("/dashboard/tours?error=validation-failed");
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_VALIDATION_FAILED}`);
   }
 
   try {
@@ -160,27 +176,31 @@ export async function createTour(formData: FormData) {
 
     if (error) {
       console.error("Failed to create tour:", error.message);
-      if (error.message.includes("duplicate key")) {
-        redirect("/dashboard/tours?error=duplicate-slug");
+      if (error.message.includes(QUERY_PARAMS.ERROR_DUPLICATE_KEY)) {
+        redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_DUPLICATE_SLUG}`);
       }
-      redirect("/dashboard/tours?error=create-failed");
+      redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_CREATE_FAILED}`);
     }
   } catch (err) {
     console.error("Unexpected error creating tour:", err);
-    redirect("/dashboard/tours?error=unexpected");
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UNEXPECTED}`);
   }
 
   revalidatePath("/");
   revalidatePath("/tours");
   revalidatePath("/dashboard/tours");
-  redirect("/dashboard/tours?success=created");
+  redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_SUCCESS}=${QUERY_PARAMS.TOUR_SUCCESS_CREATED}`);
 }
 
+/**
+ * Server action to update an existing tour.
+ * Requires admin authentication. Validates all tour data, handles image updates.
+ */
 export async function updateTour(formData: FormData) {
   try {
     await requireAdmin();
   } catch {
-    redirect("/login?error=unauthorized");
+    redirect(`/login?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UNAUTHORIZED}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -190,8 +210,8 @@ export async function updateTour(formData: FormData) {
   }
 
   const id = String(formData.get("id") || "").trim();
-  if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
-    redirect("/dashboard/tours?error=invalid-id");
+  if (!id || !DATABASE_CONFIG.UUID_PATTERN.test(id)) {
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_INVALID_ID}`);
   }
 
   const fallbackUrl = String(formData.get("existing_image_url") || "");
@@ -200,7 +220,7 @@ export async function updateTour(formData: FormData) {
 
   const validationErrors = validateTourData(payload);
   if (Object.keys(validationErrors).length > 0) {
-    redirect("/dashboard/tours?error=validation-failed");
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_VALIDATION_FAILED}`);
   }
 
   try {
@@ -208,28 +228,33 @@ export async function updateTour(formData: FormData) {
 
     if (error) {
       console.error("Failed to update tour:", error.message);
-      if (error.message.includes("duplicate key")) {
-        redirect("/dashboard/tours?error=duplicate-slug");
+      if (error.message.includes(QUERY_PARAMS.ERROR_DUPLICATE_KEY)) {
+        redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_DUPLICATE_SLUG}`);
       }
-      redirect("/dashboard/tours?error=update-failed");
+      redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UPDATE_FAILED}`);
     }
   } catch (err) {
     console.error("Unexpected error updating tour:", err);
-    redirect("/dashboard/tours?error=unexpected");
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UNEXPECTED}`);
   }
 
   revalidatePath("/");
   revalidatePath("/tours");
   revalidatePath(`/tours/${payload.slug}`);
   revalidatePath("/dashboard/tours");
-  redirect("/dashboard/tours?success=updated");
+  redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_SUCCESS}=${QUERY_PARAMS.TOUR_SUCCESS_UPDATED}`);
 }
 
+/**
+ * Server action to soft-delete a tour.
+ * Requires admin authentication. Sets deleted_at timestamp instead of hard delete.
+ * Preserves audit trail and allows restore if needed.
+ */
 export async function deleteTour(formData: FormData) {
   try {
     await requireAdmin();
   } catch {
-    redirect("/login?error=unauthorized");
+    redirect(`/login?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UNAUTHORIZED}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -239,8 +264,8 @@ export async function deleteTour(formData: FormData) {
   }
 
   const id = String(formData.get("id") || "").trim();
-  if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
-    redirect("/dashboard/tours?error=invalid-id");
+  if (!id || !DATABASE_CONFIG.UUID_PATTERN.test(id)) {
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_INVALID_ID}`);
   }
 
   try {
@@ -251,18 +276,18 @@ export async function deleteTour(formData: FormData) {
       .maybeSingle();
 
     if (!tour) {
-      redirect("/dashboard/tours?error=not-found");
+      redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_NOT_FOUND}`);
     }
 
     const { error } = await supabase.from("tours").update({ deleted_at: new Date().toISOString() }).eq("id", id);
 
     if (error) {
       console.error("Failed to delete tour:", error.message);
-      redirect("/dashboard/tours?error=delete-failed");
+      redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_DELETE_FAILED}`);
     }
   } catch (err) {
     console.error("Unexpected error deleting tour:", err);
-    redirect("/dashboard/tours?error=unexpected");
+    redirect(`/dashboard/tours?${QUERY_PARAMS.TOUR_ERROR}=${QUERY_PARAMS.ERROR_UNEXPECTED}`);
   }
 
   revalidatePath("/");
