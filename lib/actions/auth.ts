@@ -33,6 +33,8 @@ export async function login(_: unknown, formData: FormData) {
     return { error: "Vui lòng nhập mật khẩu (tối thiểu 6 ký tự)." };
   }
 
+  let destination: string;
+
   try {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
@@ -50,11 +52,14 @@ export async function login(_: unknown, formData: FormData) {
     }
 
     const role = await getCurrentUserRole(user.id);
-    redirect(role === "admin" ? "/dashboard" : "/");
+    destination = role === "admin" ? "/dashboard" : "/";
   } catch (err) {
     console.error("Unexpected login error:", err);
     return { error: GENERIC_ERROR };
   }
+
+  // redirect() throws NEXT_REDIRECT by design, so it must run outside try/catch.
+  redirect(destination);
 }
 
 export async function register(_: unknown, formData: FormData) {
@@ -97,12 +102,13 @@ export async function register(_: unknown, formData: FormData) {
       }
       return { error: "Không thể đăng ký. Vui lòng thử lại sau." };
     }
-
-    redirect("/login?registered=1");
   } catch (err) {
     console.error("Unexpected registration error:", err);
     return { error: "Không thể đăng ký. Vui lòng thử lại sau." };
   }
+
+  // redirect() throws NEXT_REDIRECT by design, so it must run outside try/catch.
+  redirect("/login?registered=1");
 }
 
 export async function logout() {
