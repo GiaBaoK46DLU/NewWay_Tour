@@ -26,7 +26,8 @@ export const sampleTours: Tour[] = [
       "Vé tham quan",
       "Nước suối"
     ],
-    tour_type: "Săn mây"
+    tour_type: "Săn mây",
+    capacity: 30
   },
   {
     id: "tour-langbiang",
@@ -48,7 +49,8 @@ export const sampleTours: Tour[] = [
       "16:30 kết thúc tour"
     ],
     included_services: ["Xe du lịch", "Bữa trưa", "Vé cổng", "Bảo hiểm du lịch"],
-    tour_type: "Khám phá"
+    tour_type: "Khám phá",
+    capacity: 30
   },
   {
     id: "tour-thac-datanla",
@@ -70,7 +72,8 @@ export const sampleTours: Tour[] = [
       "12:30 trả khách"
     ],
     included_services: ["Xe đưa đón", "Vé tham quan", "Hướng dẫn viên", "Nước suối"],
-    tour_type: "Mạo hiểm"
+    tour_type: "Mạo hiểm",
+    capacity: 25
   },
   {
     id: "tour-ho-tuyen-lam",
@@ -92,7 +95,8 @@ export const sampleTours: Tour[] = [
       "16:00 trả khách"
     ],
     included_services: ["Xe riêng", "Bữa trưa", "Vé điểm tham quan", "Hỗ trợ chụp ảnh"],
-    tour_type: "Nghỉ dưỡng"
+    tour_type: "Nghỉ dưỡng",
+    capacity: 20
   },
   {
     id: "tour-city-da-lat-1-ngay",
@@ -114,7 +118,8 @@ export const sampleTours: Tour[] = [
       "14:00 vườn hoa thành phố và chợ Đà Lạt"
     ],
     included_services: ["Xe đưa đón", "Bữa trưa", "Vé tham quan", "Hướng dẫn viên"],
-    tour_type: "City tour"
+    tour_type: "City tour",
+    capacity: 35
   },
   {
     id: "tour-camping-da-lat",
@@ -135,7 +140,8 @@ export const sampleTours: Tour[] = [
       "Ngày 2: cà phê rừng thông, trả khách"
     ],
     included_services: ["Lều trại", "BBQ tối", "Bữa sáng", "Xe đưa đón", "Hướng dẫn viên"],
-    tour_type: "Camping"
+    tour_type: "Camping",
+    capacity: 15
   }
 ];
 
