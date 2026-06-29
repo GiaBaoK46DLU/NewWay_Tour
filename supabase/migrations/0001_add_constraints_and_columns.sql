@@ -1,4 +1,7 @@
 -- Migration: Add constraints, columns, indexes and policies for data integrity
+-- NOTE: PostgreSQL does NOT support `ADD CONSTRAINT IF NOT EXISTS`, so every
+-- constraint below uses the idempotent `DROP CONSTRAINT IF EXISTS` +
+-- `ADD CONSTRAINT` pattern. This file is safe to re-run.
 
 -- Add capacity column to tours
 ALTER TABLE public.tours ADD COLUMN IF NOT EXISTS capacity integer NOT NULL DEFAULT 30 CHECK (capacity > 0);
@@ -19,29 +22,39 @@ ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT 
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
 
 -- Add email/phone validation constraints to bookings
-ALTER TABLE public.bookings ADD CONSTRAINT IF NOT EXISTS email_format
-  CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$');
+ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS email_format;
+ALTER TABLE public.bookings ADD CONSTRAINT email_format
+  CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 
-ALTER TABLE public.bookings ADD CONSTRAINT IF NOT EXISTS phone_format
+ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS phone_format;
+ALTER TABLE public.bookings ADD CONSTRAINT phone_format
   CHECK (phone ~* '^\+?[0-9\s\.\-()]{10,15}$');
 
 -- Add length constraint to note field
-ALTER TABLE public.bookings ADD CONSTRAINT IF NOT EXISTS note_length
+ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS note_length;
+ALTER TABLE public.bookings ADD CONSTRAINT note_length
   CHECK (note IS NULL OR char_length(note) <= 5000);
 
 -- Add guest count upper limit
-ALTER TABLE public.bookings ADD CONSTRAINT IF NOT EXISTS guests_limit
+ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS guests_limit;
+ALTER TABLE public.bookings ADD CONSTRAINT guests_limit
   CHECK (guests <= 100);
 
--- Add travel_date cannot be in past
-ALTER TABLE public.bookings ADD CONSTRAINT IF NOT EXISTS travel_date_not_past
-  CHECK (travel_date >= CURRENT_DATE);
+-- NOTE: travel_date "not in the past" is intentionally NOT a CHECK constraint.
+-- PostgreSQL rejects non-IMMUTABLE functions (CURRENT_DATE/now()) inside CHECK
+-- constraints. This rule is enforced at the application layer in
+-- lib/actions/bookings.ts::validateBooking (UTC-normalized comparison).
 
--- Add price validation (must be positive)
-ALTER TABLE public.tours MODIFY COLUMN price integer NOT NULL CHECK (price > 0);
+-- Add price validation (must be positive). The base schema created an unnamed
+-- `price >= 0` check; drop it and replace with a stricter named one.
+ALTER TABLE public.tours DROP CONSTRAINT IF EXISTS tours_price_check;
+ALTER TABLE public.tours DROP CONSTRAINT IF EXISTS price_positive;
+ALTER TABLE public.tours ADD CONSTRAINT price_positive
+  CHECK (price > 0);
 
 -- Add rating validation (0-5 scale)
-ALTER TABLE public.tours ADD CONSTRAINT IF NOT EXISTS rating_range
+ALTER TABLE public.tours DROP CONSTRAINT IF EXISTS rating_range;
+ALTER TABLE public.tours ADD CONSTRAINT rating_range
   CHECK (rating >= 0 AND rating <= 5);
 
 -- Create function to auto-update updated_at timestamp
@@ -83,14 +96,17 @@ CREATE INDEX IF NOT EXISTS idx_tours_created_at ON public.tours(created_at DESC)
 CREATE INDEX IF NOT EXISTS idx_tours_deleted_at ON public.tours(deleted_at) WHERE deleted_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON public.profiles(email);
 
--- Update RLS policies for bookings - add DELETE policy
+-- RLS: only admins may delete bookings. The previous `USING (true)` policy let
+-- any anonymous visitor delete ANY booking, so it is replaced here.
 DROP POLICY IF EXISTS "Users can delete own bookings" ON public.bookings;
-CREATE POLICY "Users can delete own bookings"
+DROP POLICY IF EXISTS "Admins can delete bookings" ON public.bookings;
+CREATE POLICY "Admins can delete bookings"
 ON public.bookings FOR DELETE
-TO anon, authenticated
-USING (true);
+TO authenticated
+USING ((SELECT public.is_admin(auth.uid())));
 
--- Update RLS policies for profiles - add UPDATE policy
+-- Update RLS policies for profiles - add UPDATE policy.
+-- WITH CHECK keeps role = 'user' so a user cannot self-promote to admin.
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile"
 ON public.profiles FOR UPDATE
@@ -103,7 +119,7 @@ ALTER TABLE public.bookings DROP CONSTRAINT IF EXISTS bookings_tour_id_fkey;
 ALTER TABLE public.bookings ADD CONSTRAINT bookings_tour_id_fkey
   FOREIGN KEY (tour_id) REFERENCES public.tours(id) ON DELETE CASCADE;
 
--- Restrict booking insert via RLS with rate limiting check
+-- Public booking insert stays open (anonymous customers create bookings).
 DROP POLICY IF EXISTS "Public can create bookings" ON public.bookings;
 CREATE POLICY "Public can create bookings"
 ON public.bookings FOR INSERT

@@ -138,9 +138,12 @@ export async function createBooking(
       };
     }
 
-    const { count: bookedGuests, error: countError } = await supabase
+    // Capacity is measured in GUESTS, not number of bookings. We must SUM the
+    // `guests` column of every active booking for this tour+date, not COUNT the
+    // rows — otherwise 5 bookings of 6 guests (30 guests) would read as 5.
+    const { data: activeBookings, error: countError } = await supabase
       .from("bookings")
-      .select("*", { count: "exact", head: true })
+      .select("guests")
       .eq("tour_id", payload.tour_id)
       .eq("travel_date", payload.travel_date)
       .is("cancelled_at", null)
@@ -154,11 +157,16 @@ export async function createBooking(
       };
     }
 
-    const currentBooked = (bookedGuests || 0) + payload.guests;
+    const bookedGuests = (activeBookings || []).reduce(
+      (sum, booking) => sum + (booking.guests || 0),
+      0
+    );
+
+    const currentBooked = bookedGuests + payload.guests;
     if (currentBooked > tour.capacity) {
       return {
         status: "error",
-        message: BOOKING_ERROR_MESSAGES.CAPACITY_EXCEEDED(Math.max(0, tour.capacity - (bookedGuests || 0)))
+        message: BOOKING_ERROR_MESSAGES.CAPACITY_EXCEEDED(Math.max(0, tour.capacity - bookedGuests))
       };
     }
 
