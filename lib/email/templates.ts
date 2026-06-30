@@ -139,3 +139,35 @@ export function adminNotificationEmail(data: BookingEmailData): string {
 
   return layout(`Booking mới: ${data.tour.title}`, body);
 }
+
+/** Sent to the customer when an admin confirms their booking. */
+export function bookingConfirmedEmail(data: BookingEmailData): string {
+  const body = `
+    <h1 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Booking của bạn đã được xác nhận!</h1>
+    <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+      Xin chào ${escapeHtml(data.fullName)}, tour bạn đặt đã được ${escapeHtml(EMAIL_CONFIG.BRAND_NAME)}
+      xác nhận chính thức. Hẹn gặp bạn tại điểm khởi hành!
+    </p>
+    <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;">
+      <h2 style="margin:0 0 12px;color:#0f172a;font-size:15px;text-transform:uppercase;letter-spacing:0.5px;">Chi tiết đặt tour</h2>
+      ${detailsTable(data)}
+    </div>`;
+
+  return layout(`Đã xác nhận: ${data.tour.title}`, body);
+}
+
+/** Sent to the customer when an admin cancels their booking. */
+export function bookingCancelledEmail(data: BookingEmailData): string {
+  const body = `
+    <h1 style="margin:0 0 8px;color:#0f172a;font-size:22px;">Booking của bạn đã bị hủy</h1>
+    <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+      Xin chào ${escapeHtml(data.fullName)}, rất tiếc booking dưới đây đã bị hủy. Nếu đây là
+      nhầm lẫn hoặc bạn muốn đặt lại, vui lòng liên hệ trực tiếp với chúng tôi.
+    </p>
+    <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;">
+      <h2 style="margin:0 0 12px;color:#0f172a;font-size:15px;text-transform:uppercase;letter-spacing:0.5px;">Chi tiết đặt tour (đã hủy)</h2>
+      ${detailsTable(data)}
+    </div>`;
+
+  return layout(`Đã hủy: ${data.tour.title}`, body);
+}

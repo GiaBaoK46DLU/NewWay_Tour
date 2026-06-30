@@ -153,6 +153,8 @@ export const EMAIL_SUBJECTS = {
   CUSTOMER_CONFIRMATION: (tourTitle: string) =>
     `Đã nhận yêu cầu đặt tour: ${tourTitle}`,
   ADMIN_NOTIFICATION: (tourTitle: string) => `[Booking mới] ${tourTitle}`,
+  BOOKING_CONFIRMED: (tourTitle: string) => `Đã xác nhận: ${tourTitle}`,
+  BOOKING_CANCELLED: (tourTitle: string) => `Đã hủy: ${tourTitle}`,
 } as const;
 
 // ============ Booking Confirmation Page ============

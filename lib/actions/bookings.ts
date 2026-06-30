@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
   sendBookingConfirmationEmail,
   sendBookingNotificationEmail,
+  sendBookingStatusEmail,
   type BookingEmailData
 } from "@/lib/email";
 import {
@@ -303,6 +304,15 @@ export async function updateBookingStatus(
       ? { cancelled_at: new Date().toISOString() }
       : { status: BOOKING_STATUS.CONFIRMED };
 
+    // Fetch the booking + tour details needed for the status email BEFORE
+    // updating. Admins pass the "Admins can read bookings" RLS policy, so this
+    // select (unlike the customer-facing insert in createBooking) is safe.
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("full_name, email, phone, travel_date, guests, note, tours(title, location, duration, price)")
+      .eq("id", bookingId)
+      .maybeSingle();
+
     const { error } = await supabase
       .from("bookings")
       .update(updateData)
@@ -314,6 +324,37 @@ export async function updateBookingStatus(
         status: "error",
         message: BOOKING_ERROR_MESSAGES.UPDATE_FAILED(status)
       };
+    }
+
+    // Notify the customer their booking status changed. Best-effort: the
+    // status update above already succeeded, so an email failure here must
+    // not turn this into an error response for the admin.
+    const tour = Array.isArray(booking?.tours) ? booking.tours[0] : booking?.tours;
+    if (booking && tour) {
+      const emailData: BookingEmailData = {
+        bookingId,
+        fullName: booking.full_name,
+        email: booking.email,
+        phone: booking.phone,
+        travelDate: booking.travel_date,
+        guests: booking.guests,
+        note: booking.note,
+        tour: {
+          title: tour.title,
+          location: tour.location,
+          duration: tour.duration,
+          price: tour.price
+        }
+      };
+
+      try {
+        const result = await sendBookingStatusEmail(emailData, status);
+        if (!result.ok && !result.skipped) {
+          console.error(`[email] booking ${status} notice failed:`, result.error);
+        }
+      } catch (emailError) {
+        console.error(`[email] Unexpected error sending ${status} notice:`, emailError);
+      }
     }
 
     revalidatePath("/dashboard/bookings");
