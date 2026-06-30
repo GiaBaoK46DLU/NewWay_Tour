@@ -4,13 +4,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import {
+  sendBookingConfirmationEmail,
+  sendBookingNotificationEmail,
+  type BookingEmailData
+} from "@/lib/email";
+import {
   BOOKING_STATUS,
   BOOKING_VALIDATION,
   BOOKING_ERROR_MESSAGES,
   BOOKING_FIELD_ERRORS,
-  QUERY_PARAMS,
+  BOOKING_CONFIRMATION,
   DATABASE_CONFIG
 } from "@/lib/constants";
+import { getBookingReference } from "@/lib/utils";
 
 export interface BookingFormState {
   status: "idle" | "error";
@@ -91,6 +97,31 @@ function validateBooking(payload: {
 }
 
 /**
+ * Send the customer confirmation and admin notification emails for a booking.
+ * Best-effort: failures are logged but never thrown, so a flaky email provider
+ * can never roll back a successful booking. Both sends run in parallel.
+ */
+async function sendBookingEmails(data: BookingEmailData): Promise<void> {
+  try {
+    const results = await Promise.allSettled([
+      sendBookingConfirmationEmail(data),
+      sendBookingNotificationEmail(data)
+    ]);
+
+    results.forEach((result, index) => {
+      const label = index === 0 ? "customer confirmation" : "admin notification";
+      if (result.status === "rejected") {
+        console.error(`[email] ${label} threw:`, result.reason);
+      } else if (!result.value.ok && !result.value.skipped) {
+        console.error(`[email] ${label} failed:`, result.value.error);
+      }
+    });
+  } catch (error) {
+    console.error("[email] Unexpected error while sending booking emails:", error);
+  }
+}
+
+/**
  * Server action to create a new booking.
  * Validates all input, checks tour capacity, and inserts booking record.
  * Prevents overbooking by querying existing non-cancelled bookings for same tour+date.
@@ -124,10 +155,14 @@ export async function createBooking(
     };
   }
 
+  // Set inside the try block once the booking is saved, then consumed by the
+  // redirect() below (which must live outside the try/catch).
+  let confirmationUrl = "";
+
   try {
     const { data: tour, error: tourError } = await supabase
       .from("tours")
-      .select("id, capacity")
+      .select("id, capacity, title, location, duration, price")
       .eq("id", payload.tour_id)
       .maybeSingle();
 
@@ -170,7 +205,13 @@ export async function createBooking(
       };
     }
 
+    // Generate the ID client-side instead of using `.select().single()` after
+    // insert: the bookings table only grants SELECT to admins via RLS, so
+    // requesting the inserted row back (RETURNING) fails RLS for anonymous
+    // customers even though the INSERT itself is allowed.
+    const bookingId = crypto.randomUUID();
     const { error } = await supabase.from("bookings").insert({
+      id: bookingId,
       tour_id: payload.tour_id,
       full_name: payload.full_name,
       email: payload.email,
@@ -188,6 +229,37 @@ export async function createBooking(
         message: BOOKING_ERROR_MESSAGES.CREATE_FAILED
       };
     }
+
+    // Fire confirmation + admin notification emails. Email delivery is a
+    // best-effort side effect: a failure here must NOT fail the booking, so we
+    // swallow errors and only log them. Both emails are attempted in parallel.
+    await sendBookingEmails({
+      bookingId,
+      fullName: payload.full_name,
+      email: payload.email,
+      phone: payload.phone,
+      travelDate: payload.travel_date,
+      guests: payload.guests,
+      note: payload.note,
+      tour: {
+        title: tour.title,
+        location: tour.location,
+        duration: tour.duration,
+        price: tour.price
+      }
+    });
+
+    // Build the confirmation URL while the booking details are in scope. Only
+    // non-sensitive fields go into the query string (no name/email/phone) — the
+    // customer reads the rest from their confirmation email. URLSearchParams
+    // handles encoding of the Vietnamese tour title.
+    const params = new URLSearchParams({
+      [BOOKING_CONFIRMATION.PARAMS.REF]: getBookingReference(bookingId),
+      [BOOKING_CONFIRMATION.PARAMS.TOUR]: tour.title,
+      [BOOKING_CONFIRMATION.PARAMS.DATE]: payload.travel_date,
+      [BOOKING_CONFIRMATION.PARAMS.GUESTS]: String(payload.guests)
+    });
+    confirmationUrl = `${BOOKING_CONFIRMATION.PATH}?${params.toString()}`;
   } catch (error) {
     console.error("Unexpected error while creating booking:", error);
     return {
@@ -197,7 +269,8 @@ export async function createBooking(
   }
 
   revalidatePath("/dashboard/bookings");
-  redirect(`/tours?${QUERY_PARAMS.BOOKING_ERROR}=${QUERY_PARAMS.BOOKING_SUCCESS}`);
+  // redirect() throws internally, so it must run outside the try/catch above.
+  redirect(confirmationUrl);
 }
 
 /**

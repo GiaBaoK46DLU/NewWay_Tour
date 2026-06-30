@@ -4,7 +4,7 @@
 export const BOOKING_STATUS = {
   NEW: "new",
   CONFIRMED: "confirmed",
-  CANCELLED: "cancelled"
+  CANCELLED: "cancelled",
 } as const;
 
 export const BOOKING_VALIDATION = {
@@ -13,7 +13,7 @@ export const BOOKING_VALIDATION = {
   MAX_NOTE_LENGTH: 5000,
   MIN_TRAVEL_DATE: "today",
   EMAIL_REGEX: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/,
-  PHONE_REGEX: /^\+?[0-9\s\.\-()]{10,15}$/
+  PHONE_REGEX: /^\+?[0-9\s\.\-()]{10,15}$/,
 } as const;
 
 export const BOOKING_ERROR_MESSAGES = {
@@ -28,23 +28,24 @@ export const BOOKING_ERROR_MESSAGES = {
   UPDATE_FAILED: (action: string) =>
     `Không thể ${action === "cancelled" ? "hủy" : "xác nhận"} booking. Vui lòng thử lại sau.`,
   UPDATE_SUCCESS: (action: string) =>
-    `Booking đã được ${action === "cancelled" ? "hủy" : "xác nhận"}.`
+    `Booking đã được ${action === "cancelled" ? "hủy" : "xác nhận"}.`,
 } as const;
 
 export const BOOKING_FIELD_ERRORS = {
   TOUR_ID: "Không xác định được tour. Vui lòng thử lại.",
   FULL_NAME: "Vui lòng nhập họ và tên hợp lệ (tối thiểu 2 ký tự).",
   EMAIL_REQUIRED: "Vui lòng nhập email.",
-  EMAIL_INVALID: "Email không đúng định dạng (vd: example@domain.com).",
+  EMAIL_INVALID: "Email không đúng định dạng (vd: example@gmail.com).",
   PHONE_REQUIRED: "Vui lòng nhập số điện thoại.",
-  PHONE_INVALID: "Số điện thoại không hợp lệ. Sử dụng định dạng: +84 9xxxxxxxx hoặc 09xxxxxxxx.",
+  PHONE_INVALID:
+    "Số điện thoại không hợp lệ. Sử dụng định dạng: +84 9xxxxxxxx hoặc 09xxxxxxxx.",
   TRAVEL_DATE_REQUIRED: "Vui lòng chọn ngày đi.",
   TRAVEL_DATE_INVALID: "Ngày đi không hợp lệ.",
   TRAVEL_DATE_PAST: "Ngày đi phải từ hôm nay trở đi.",
   GUESTS_NOT_INTEGER: "Số khách phải là số nguyên.",
   GUESTS_MIN: "Số khách phải lớn hơn 0.",
   GUESTS_MAX: (max: number) => `Số khách không được vượt quá ${max}.`,
-  NOTE_MAX_LENGTH: (max: number) => `Ghi chú không được vượt quá ${max} ký tự.`
+  NOTE_MAX_LENGTH: (max: number) => `Ghi chú không được vượt quá ${max} ký tự.`,
 } as const;
 
 // ============ Tour Validation & Management ============
@@ -61,7 +62,7 @@ export const TOUR_VALIDATION = {
   MAX_ITINERARY_ITEM_LENGTH: 300,
   SLUG_REGEX: /^[a-z0-9-]+$/,
   ALLOWED_IMAGE_TYPES: ["image/jpeg", "image/png", "image/webp"],
-  MAX_IMAGE_SIZE: 10 * 1024 * 1024
+  MAX_IMAGE_SIZE: 10 * 1024 * 1024,
 } as const;
 
 export const TOUR_ERROR_MESSAGES = {
@@ -73,7 +74,7 @@ export const TOUR_ERROR_MESSAGES = {
   INVALID_ID: "ID tour không hợp lệ.",
   NOT_FOUND: "Tour không tồn tại.",
   IMAGE_UPLOAD_FAILED: "Không thể tải ảnh lên. Vui lòng thử lại sau.",
-  UNEXPECTED_ERROR: "Đã có lỗi xảy ra. Vui lòng thử lại sau."
+  UNEXPECTED_ERROR: "Đã có lỗi xảy ra. Vui lòng thử lại sau.",
 } as const;
 
 export const TOUR_FIELD_ERRORS = {
@@ -88,15 +89,24 @@ export const TOUR_FIELD_ERRORS = {
   RATING_INVALID: "Xếp hạng phải nằm trong khoảng 0-5.",
   SLUG_REQUIRED: "Slug không được để trống.",
   SLUG_INVALID: "Slug chỉ được chứa chữ cái thường, số và dấu gạch ngang.",
-  ITINERARY_MAX_ITEMS: (max: number) => `Lịch trình không được vượt quá ${max} mục.`,
-  ITINERARY_ITEM_MAX_LENGTH: (max: number) => `Mỗi mục lịch trình không được vượt quá ${max} ký tự.`
+  ITINERARY_MAX_ITEMS: (max: number) =>
+    `Lịch trình không được vượt quá ${max} mục.`,
+  ITINERARY_ITEM_MAX_LENGTH: (max: number) =>
+    `Mỗi mục lịch trình không được vượt quá ${max} ký tự.`,
 } as const;
 
 export const TOUR_DEFAULTS = {
   RATING: 4.8,
   TYPE: "Khám phá",
   CAPACITY: 30,
-  TYPES: ["Săn mây", "Khám phá", "Mạo hiểm", "Nghỉ dưỡng", "City tour", "Camping"]
+  TYPES: [
+    "Săn mây",
+    "Khám phá",
+    "Mạo hiểm",
+    "Nghỉ dưỡng",
+    "City tour",
+    "Camping",
+  ],
 } as const;
 
 // ============ Authentication & Authorization ============
@@ -105,7 +115,7 @@ export const AUTH_ERROR_MESSAGES = {
   SETUP_REQUIRED: "Chưa cấu hình Supabase. Hãy thêm biến môi trường trước.",
   UNAUTHORIZED: "Bạn không có quyền truy cập tài nguyên này.",
   ALREADY_REGISTERED: "Email này đã được đăng ký.",
-  GENERIC: "Email hoặc mật khẩu không đúng"
+  GENERIC: "Email hoặc mật khẩu không đúng",
 } as const;
 
 export const AUTH_VALIDATION = {
@@ -113,18 +123,51 @@ export const AUTH_VALIDATION = {
   MAX_EMAIL_LENGTH: 254,
   MIN_USERNAME_LENGTH: 2,
   MAX_USERNAME_LENGTH: 50,
-  EMAIL_REGEX: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/
+  EMAIL_REGEX: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/,
 } as const;
 
 export const AUTH_FIELD_ERRORS = {
   EMAIL_INVALID: "Vui lòng nhập email hợp lệ.",
   PASSWORD_MIN: "Mật khẩu phải có tối thiểu 6 ký tự.",
-  USERNAME_INVALID: "Vui lòng nhập tên người dùng (2-50 ký tự)."
+  USERNAME_INVALID: "Vui lòng nhập tên người dùng (2-50 ký tự).",
 } as const;
 
 export const USER_ROLES = {
   ADMIN: "admin",
-  USER: "user"
+  USER: "user",
+} as const;
+
+// ============ Email Service (Resend) ============
+export const EMAIL_CONFIG = {
+  // Resend's shared sandbox sender works without domain verification (testing).
+  // Replace with a verified domain sender in production via EMAIL_FROM env var.
+  DEFAULT_FROM: "NewWay Tourist <onboarding@resend.dev>",
+  API_ENDPOINT: "https://api.resend.com/emails",
+  BRAND_NAME: "NewWay Tourist",
+  BRAND_COLOR: "#0f766e",
+  SUPPORT_NOTE:
+    "Chủ tour sẽ liên hệ với bạn qua email hoặc điện thoại trong vòng 24 giờ để xác nhận.",
+} as const;
+
+export const EMAIL_SUBJECTS = {
+  CUSTOMER_CONFIRMATION: (tourTitle: string) =>
+    `Đã nhận yêu cầu đặt tour: ${tourTitle}`,
+  ADMIN_NOTIFICATION: (tourTitle: string) => `[Booking mới] ${tourTitle}`,
+} as const;
+
+// ============ Booking Confirmation Page ============
+// Customers cannot read the bookings table back (SELECT is admin-only via RLS),
+// so the confirmation page receives its display data through these query params
+// instead of fetching the row. Only non-sensitive fields are passed (no name,
+// email, or phone) to avoid leaking PII into the URL / browser history.
+export const BOOKING_CONFIRMATION = {
+  PATH: "/booking-confirmed",
+  PARAMS: {
+    REF: "ref",
+    TOUR: "tour",
+    DATE: "date",
+    GUESTS: "guests",
+  },
 } as const;
 
 // ============ Query Parameters & Redirects ============
@@ -145,18 +188,18 @@ export const QUERY_PARAMS = {
   ERROR_INVALID_ID: "invalid-id",
   ERROR_NOT_FOUND: "not-found",
   ERROR_UNAUTHORIZED: "unauthorized",
-  ERROR_UNEXPECTED: "unexpected"
+  ERROR_UNEXPECTED: "unexpected",
 } as const;
 
 // ============ Database Config ============
 export const DATABASE_CONFIG = {
   UUID_PATTERN: /^[0-9a-f-]{36}$/i,
   SOFT_DELETE_FILTER: { is: ["deleted_at", null] },
-  SOFT_CANCEL_FILTER: { is: ["cancelled_at", null] }
+  SOFT_CANCEL_FILTER: { is: ["cancelled_at", null] },
 } as const;
 
 // ============ Pagination & Limits ============
 export const PAGINATION = {
   DEFAULT_LIMIT: 20,
-  MAX_LIMIT: 100
+  MAX_LIMIT: 100,
 } as const;
