@@ -127,6 +127,24 @@ export const USER_ROLES = {
   USER: "user"
 } as const;
 
+// ============ Email Service (Resend) ============
+export const EMAIL_CONFIG = {
+  // Resend's shared sandbox sender works without domain verification (testing).
+  // Replace with a verified domain sender in production via EMAIL_FROM env var.
+  DEFAULT_FROM: "NewWay Tourist <onboarding@resend.dev>",
+  API_ENDPOINT: "https://api.resend.com/emails",
+  BRAND_NAME: "NewWay Tourist",
+  BRAND_COLOR: "#0f766e",
+  SUPPORT_NOTE: "Chủ tour sẽ liên hệ với bạn qua email hoặc điện thoại trong vòng 24 giờ để xác nhận."
+} as const;
+
+export const EMAIL_SUBJECTS = {
+  CUSTOMER_CONFIRMATION: (tourTitle: string) =>
+    `Đã nhận yêu cầu đặt tour: ${tourTitle}`,
+  ADMIN_NOTIFICATION: (tourTitle: string) =>
+    `[Booking mới] ${tourTitle}`
+} as const;
+
 // ============ Query Parameters & Redirects ============
 export const QUERY_PARAMS = {
   BOOKING_ERROR: "booking",
