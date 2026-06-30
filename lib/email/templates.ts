@@ -1,5 +1,9 @@
 import { EMAIL_CONFIG } from "@/lib/constants";
-import { formatPrice } from "@/lib/utils";
+import {
+  formatPrice,
+  formatBookingDate,
+  getBookingReference
+} from "@/lib/utils";
 
 /**
  * Data needed to render booking emails. Decoupled from the database row shape so
@@ -29,24 +33,6 @@ function escapeHtml(value: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-/** Format an ISO date string (YYYY-MM-DD) into a Vietnamese long date. */
-function formatTravelDate(value: string): string {
-  const date = new Date(value + "T00:00:00Z");
-  if (Number.isNaN(date.getTime())) return value;
-  return new Intl.DateTimeFormat("vi-VN", {
-    weekday: "long",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: "UTC"
-  }).format(date);
-}
-
-/** Short booking reference shown to the customer (first segment of the UUID). */
-function bookingReference(bookingId: string): string {
-  return bookingId.split("-")[0]?.toUpperCase() || bookingId;
 }
 
 /** Shared email shell with header/footer. `body` is trusted (already escaped). */
@@ -101,11 +87,11 @@ function detailRow(label: string, value: string): string {
 /** Shared block of booking + tour details (values already escaped/formatted). */
 function detailsTable(data: BookingEmailData): string {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-    ${detailRow("Mã đặt tour", `<span style="color:${EMAIL_CONFIG.BRAND_COLOR};">#${escapeHtml(bookingReference(data.bookingId))}</span>`)}
+    ${detailRow("Mã đặt tour", `<span style="color:${EMAIL_CONFIG.BRAND_COLOR};">#${escapeHtml(getBookingReference(data.bookingId))}</span>`)}
     ${detailRow("Tour", escapeHtml(data.tour.title))}
     ${detailRow("Địa điểm", escapeHtml(data.tour.location))}
     ${detailRow("Thời lượng", escapeHtml(data.tour.duration))}
-    ${detailRow("Ngày khởi hành", escapeHtml(formatTravelDate(data.travelDate)))}
+    ${detailRow("Ngày khởi hành", escapeHtml(formatBookingDate(data.travelDate)))}
     ${detailRow("Số khách", `${data.guests} người`)}
     ${detailRow("Đơn giá", escapeHtml(formatPrice(data.tour.price)))}
     ${data.note ? detailRow("Ghi chú", escapeHtml(data.note)) : ""}
@@ -125,7 +111,7 @@ export function customerConfirmationEmail(data: BookingEmailData): string {
     </div>
     <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
       Nếu cần thay đổi thông tin, vui lòng liên hệ trực tiếp với chúng tôi và cung cấp
-      <strong>mã đặt tour #${escapeHtml(bookingReference(data.bookingId))}</strong>.
+      <strong>mã đặt tour #${escapeHtml(getBookingReference(data.bookingId))}</strong>.
     </p>`;
 
   return layout(`Đã nhận yêu cầu đặt tour ${data.tour.title}`, body);

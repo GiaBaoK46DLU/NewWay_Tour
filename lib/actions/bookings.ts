@@ -13,9 +13,10 @@ import {
   BOOKING_VALIDATION,
   BOOKING_ERROR_MESSAGES,
   BOOKING_FIELD_ERRORS,
-  QUERY_PARAMS,
+  BOOKING_CONFIRMATION,
   DATABASE_CONFIG
 } from "@/lib/constants";
+import { getBookingReference } from "@/lib/utils";
 
 export interface BookingFormState {
   status: "idle" | "error";
@@ -154,6 +155,10 @@ export async function createBooking(
     };
   }
 
+  // Set inside the try block once the booking is saved, then consumed by the
+  // redirect() below (which must live outside the try/catch).
+  let confirmationUrl = "";
+
   try {
     const { data: tour, error: tourError } = await supabase
       .from("tours")
@@ -243,6 +248,18 @@ export async function createBooking(
         price: tour.price
       }
     });
+
+    // Build the confirmation URL while the booking details are in scope. Only
+    // non-sensitive fields go into the query string (no name/email/phone) — the
+    // customer reads the rest from their confirmation email. URLSearchParams
+    // handles encoding of the Vietnamese tour title.
+    const params = new URLSearchParams({
+      [BOOKING_CONFIRMATION.PARAMS.REF]: getBookingReference(bookingId),
+      [BOOKING_CONFIRMATION.PARAMS.TOUR]: tour.title,
+      [BOOKING_CONFIRMATION.PARAMS.DATE]: payload.travel_date,
+      [BOOKING_CONFIRMATION.PARAMS.GUESTS]: String(payload.guests)
+    });
+    confirmationUrl = `${BOOKING_CONFIRMATION.PATH}?${params.toString()}`;
   } catch (error) {
     console.error("Unexpected error while creating booking:", error);
     return {
@@ -252,7 +269,8 @@ export async function createBooking(
   }
 
   revalidatePath("/dashboard/bookings");
-  redirect(`/tours?${QUERY_PARAMS.BOOKING_ERROR}=${QUERY_PARAMS.BOOKING_SUCCESS}`);
+  // redirect() throws internally, so it must run outside the try/catch above.
+  redirect(confirmationUrl);
 }
 
 /**
