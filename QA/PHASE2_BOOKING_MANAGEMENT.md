@@ -152,7 +152,13 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 
 - ✅ `npm run lint` sạch
 - ✅ `npm run build` thành công (TypeScript compile không lỗi)
-- ⚠️ **CHƯA** test end-to-end với DB thật đã áp migration — cần QA chạy migration `0003` rồi kiểm theo các test case trên
+- ✅ **Đã test end-to-end tự động (Playwright, Chromium thật + Supabase thật)** — 3/3 pass:
+  1. User A đăng ký → đăng nhập → đặt tour → thấy booking trong `/profile` với badge "Chờ xác nhận", mã đặt chỗ + ghi chú đúng
+  2. User B **không** thấy booking của User A (RLS isolation)
+  3. Admin: modal "Chi tiết" hiện đúng email/SĐT/ghi chú + đóng bằng Esc; nút "Xuất CSV" tải file có BOM UTF-8, đúng header + dữ liệu
+- Bộ test nằm ở `e2e/phase2-booking.spec.ts`. Chạy lại: `npm run test:e2e` (cần dev server đang chạy ở `localhost:3000` + migration `0003` đã áp).
+
+> ℹ️ Test tự động tạo 1 booking gắn nhãn `QA-E2E-<timestamp>` + 2 tài khoản `qa-e2e-a/b-*@newwaytourist.test` trong DB thật. Xóa được trong Supabase nếu muốn dọn.
 
 ---
 

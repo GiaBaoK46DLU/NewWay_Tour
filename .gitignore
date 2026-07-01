@@ -28,3 +28,8 @@ Thumbs.db
 
 # misc
 *.tsbuildinfo
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
