@@ -1,5 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
 import { getBookings } from "@/lib/tours";
+import { BookingActions } from "@/components/dashboard/booking-actions";
 
 export default async function DashboardBookingsPage() {
   await requireAdmin();
@@ -15,7 +16,7 @@ export default async function DashboardBookingsPage() {
       </div>
       <div className="overflow-hidden rounded-3xl border border-forest/10 bg-white shadow-card">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[820px] text-left text-sm">
+          <table className="w-full min-w-[960px] text-left text-sm">
             <thead className="bg-cream text-xs uppercase tracking-[0.15em] text-mist">
               <tr>
                 <th className="px-5 py-4">Khách hàng</th>
@@ -24,6 +25,7 @@ export default async function DashboardBookingsPage() {
                 <th className="px-5 py-4">Số khách</th>
                 <th className="px-5 py-4">Trạng thái</th>
                 <th className="px-5 py-4">Ghi chú</th>
+                <th className="px-5 py-4">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-forest/10">
@@ -45,6 +47,9 @@ export default async function DashboardBookingsPage() {
                     </span>
                   </td>
                   <td className="px-5 py-4 text-mist">{booking.note}</td>
+                  <td className="px-5 py-4">
+                    <BookingActions bookingId={booking.id} status={booking.status} />
+                  </td>
                 </tr>
               ))}
             </tbody>

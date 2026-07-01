@@ -3,6 +3,8 @@ import { sendEmail, type SendEmailResult } from "@/lib/email/client";
 import {
   adminNotificationEmail,
   customerConfirmationEmail,
+  bookingConfirmedEmail,
+  bookingCancelledEmail,
   type BookingEmailData
 } from "@/lib/email/templates";
 
@@ -46,5 +48,25 @@ export async function sendBookingNotificationEmail(
     html: adminNotificationEmail(data),
     // Let the admin reply straight to the customer.
     replyTo: data.email
+  });
+}
+
+/**
+ * Notify the customer that an admin changed their booking's status. Used by
+ * the dashboard's Confirm/Cancel actions — never thrown, same best-effort
+ * contract as the other booking emails.
+ */
+export async function sendBookingStatusEmail(
+  data: BookingEmailData,
+  status: "confirmed" | "cancelled"
+): Promise<SendEmailResult> {
+  const isConfirmed = status === "confirmed";
+
+  return sendEmail({
+    to: data.email,
+    subject: isConfirmed
+      ? EMAIL_SUBJECTS.BOOKING_CONFIRMED(data.tour.title)
+      : EMAIL_SUBJECTS.BOOKING_CANCELLED(data.tour.title),
+    html: isConfirmed ? bookingConfirmedEmail(data) : bookingCancelledEmail(data)
   });
 }
