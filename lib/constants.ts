@@ -7,6 +7,15 @@ export const BOOKING_STATUS = {
   CANCELLED: "cancelled",
 } as const;
 
+// Vietnamese label + Tailwind palette for each booking status, shared by the
+// admin dashboard, the booking detail modal, and the customer's profile history
+// so a status always looks and reads the same everywhere.
+export const BOOKING_STATUS_META = {
+  new: { label: "Chờ xác nhận", badge: "bg-gold/15 text-earth" },
+  confirmed: { label: "Đã xác nhận", badge: "bg-forest/10 text-forest" },
+  cancelled: { label: "Đã hủy", badge: "bg-red-50 text-red-700" },
+} as const;
+
 export const BOOKING_VALIDATION = {
   MIN_NAME_LENGTH: 2,
   MAX_GUESTS: 100,

@@ -206,6 +206,14 @@ export async function createBooking(
       };
     }
 
+    // Link the booking to the signed-in customer so it shows up in their
+    // "Lịch sử đặt tour" on /profile. Anonymous bookings (no session) store
+    // NULL and simply won't appear in any user's history — only the admin sees
+    // them. getUser() reads the session cookie; it never throws when logged out.
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
     // Generate the ID client-side instead of using `.select().single()` after
     // insert: the bookings table only grants SELECT to admins via RLS, so
     // requesting the inserted row back (RETURNING) fails RLS for anonymous
@@ -220,7 +228,8 @@ export async function createBooking(
       travel_date: payload.travel_date,
       guests: payload.guests,
       note: payload.note || null,
-      status: BOOKING_STATUS.NEW
+      status: BOOKING_STATUS.NEW,
+      user_id: user?.id ?? null
     });
 
     if (error) {

@@ -36,18 +36,21 @@ export type BlogPost = {
   read_time: string;
 };
 
+export type BookingStatus = "new" | "confirmed" | "cancelled";
+
 export type Booking = {
   id: string;
   tour_id: string;
+  user_id?: string | null;
   full_name: string;
   email: string;
   phone: string;
   travel_date: string;
   guests: number;
   note?: string | null;
-  status: "new" | "confirmed" | "cancelled";
+  status: BookingStatus;
   created_at?: string;
   updated_at?: string;
   cancelled_at?: string | null;
-  tours?: { id: string; title: string };
+  tours?: { id: string; title: string; slug?: string } | null;
 };

@@ -40,6 +40,21 @@ export function formatBookingDate(isoDate: string) {
   }).format(date);
 }
 
+/**
+ * Resolve the status to DISPLAY for a booking. Cancelling is a soft-delete: the
+ * Cancel action only stamps `cancelled_at` and leaves `status` untouched (it may
+ * still read "new" or "confirmed"). So a non-null `cancelled_at` always wins and
+ * the booking is shown as cancelled, regardless of the stored `status`.
+ */
+export function getBookingDisplayStatus(booking: {
+  status: string;
+  cancelled_at?: string | null;
+}): "new" | "confirmed" | "cancelled" {
+  if (booking.cancelled_at) return "cancelled";
+  if (booking.status === "confirmed") return "confirmed";
+  return "new";
+}
+
 export function slugify(value: string) {
   return value
     .normalize("NFD")
