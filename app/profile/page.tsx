@@ -1,9 +1,24 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { LayoutDashboard, LogOut, Mail, ShieldCheck, UserRound } from "lucide-react";
+import {
+  CalendarDays,
+  Hash,
+  LayoutDashboard,
+  LogOut,
+  Mail,
+  MapPin,
+  ShieldCheck,
+  StickyNote,
+  Ticket,
+  UserRound,
+  Users
+} from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { getCurrentProfile } from "@/lib/auth";
+import { getUserBookings } from "@/lib/tours";
 import { USER_ROLES } from "@/lib/constants";
+import { formatBookingDate, getBookingReference } from "@/lib/utils";
+import { BookingStatusBadge } from "@/components/ui/booking-status-badge";
 
 export default async function ProfilePage() {
   const profile = await getCurrentProfile();
@@ -11,6 +26,8 @@ export default async function ProfilePage() {
   if (!profile) {
     redirect("/login?next=/profile");
   }
+
+  const bookings = await getUserBookings();
 
   const displayName = profile.username || profile.email;
   const isAdmin = profile.role === USER_ROLES.ADMIN;
@@ -94,6 +111,92 @@ export default async function ProfilePage() {
               </button>
             </form>
           </div>
+        </div>
+
+        <div className="mt-12">
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-2xl font-semibold tracking-tight text-ink">
+              <Ticket className="h-6 w-6 text-forest" />
+              Lịch sử đặt tour
+            </h2>
+            {bookings.length > 0 ? (
+              <span className="rounded-full bg-cream px-3 py-1 text-xs font-semibold text-forest">
+                {bookings.length} yêu cầu
+              </span>
+            ) : null}
+          </div>
+
+          {bookings.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-forest/20 bg-white p-10 text-center shadow-soft">
+              <p className="text-sm text-mist">
+                Bạn chưa có yêu cầu đặt tour nào khi đăng nhập bằng tài khoản này.
+              </p>
+              <Link
+                className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-forest px-5 text-sm font-semibold text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-soft"
+                href="/tours"
+              >
+                Khám phá tour ngay
+              </Link>
+            </div>
+          ) : (
+            <ul className="grid gap-4">
+              {bookings.map((booking) => (
+                <li
+                  className="rounded-3xl border border-forest/10 bg-white p-6 shadow-soft"
+                  key={booking.id}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      {booking.tours ? (
+                        <Link
+                          className="text-lg font-semibold text-ink transition hover:text-forest"
+                          href={`/tours/${booking.tours.slug ?? booking.tour_id}`}
+                        >
+                          {booking.tours.title}
+                        </Link>
+                      ) : (
+                        <p className="text-lg font-semibold text-ink">Tour không còn khả dụng</p>
+                      )}
+                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.12em] text-mist">
+                        <Hash className="h-3.5 w-3.5" />
+                        {getBookingReference(booking.id)}
+                      </p>
+                    </div>
+                    <BookingStatusBadge status={booking.status} cancelledAt={booking.cancelled_at} />
+                  </div>
+
+                  <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div className="flex items-center gap-2.5 text-sm text-ink">
+                      <CalendarDays className="h-4 w-4 shrink-0 text-forest" />
+                      <span className="text-mist">Ngày đi:</span>
+                      <span className="font-semibold">{formatBookingDate(booking.travel_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-2.5 text-sm text-ink">
+                      <Users className="h-4 w-4 shrink-0 text-forest" />
+                      <span className="text-mist">Số khách:</span>
+                      <span className="font-semibold">{booking.guests}</span>
+                    </div>
+                    {booking.created_at ? (
+                      <div className="flex items-center gap-2.5 text-sm text-ink">
+                        <MapPin className="h-4 w-4 shrink-0 text-forest" />
+                        <span className="text-mist">Đặt ngày:</span>
+                        <span className="font-semibold">
+                          {formatBookingDate(booking.created_at.slice(0, 10))}
+                        </span>
+                      </div>
+                    ) : null}
+                  </dl>
+
+                  {booking.note ? (
+                    <p className="mt-4 flex items-start gap-2.5 rounded-2xl bg-paper px-4 py-3 text-sm text-ink">
+                      <StickyNote className="mt-0.5 h-4 w-4 shrink-0 text-forest" />
+                      <span>{booking.note}</span>
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </section>

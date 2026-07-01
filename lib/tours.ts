@@ -1,7 +1,7 @@
 import { requireAdmin } from "@/lib/auth";
 import { sampleTours } from "@/lib/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Tour } from "@/types";
+import type { Booking, Tour } from "@/types";
 
 export async function getTours(fallbackToSample = true): Promise<Tour[]> {
   const supabase = await createSupabaseServerClient();
@@ -96,4 +96,44 @@ export async function getBookings() {
   }
 
   return data ?? [];
+}
+
+/**
+ * Fetch the bookings that belong to the currently signed-in customer, newest
+ * first, for the "Lịch sử đặt tour" section on /profile.
+ *
+ * Unlike getBookings() (admin), this deliberately does NOT filter out cancelled
+ * rows — a customer should still see the tours they cancelled. Access is scoped
+ * by the "Users can read own bookings" RLS policy (user_id = auth.uid()), so an
+ * empty result is returned for anonymous visitors or when Supabase is
+ * unconfigured. The tours() join is a LEFT join so a booking survives in the
+ * list even if its tour was later removed.
+ */
+export async function getUserBookings(): Promise<Booking[]> {
+  const supabase = await createSupabaseServerClient();
+
+  if (!supabase) {
+    return [];
+  }
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("*, tours(id, title, slug)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user bookings:", error.message);
+    return [];
+  }
+
+  return (data ?? []) as Booking[];
 }
