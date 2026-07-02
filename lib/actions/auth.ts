@@ -7,6 +7,17 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 const EMAIL_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$/;
 const GENERIC_ERROR = "Email hoặc mật khẩu không đúng. Vui lòng thử lại.";
 
+/**
+ * Only allow same-origin relative redirects (e.g. "/wishlist") to prevent open
+ * redirects. Reject protocol-relative ("//evil.com") and absolute URLs.
+ */
+function safeNext(value: string): string | null {
+  if (value.startsWith("/") && !value.startsWith("//")) {
+    return value;
+  }
+  return null;
+}
+
 function validateEmail(email: string): boolean {
   return EMAIL_REGEX.test(email) && email.length <= 254;
 }
@@ -52,7 +63,14 @@ export async function login(_: unknown, formData: FormData) {
     }
 
     const role = await getCurrentUserRole(user.id);
-    destination = role === "admin" ? "/dashboard" : "/";
+    if (role === "admin") {
+      destination = "/dashboard";
+    } else {
+      // Honour a safe ?next= return path for regular users (e.g. after being
+      // sent to login from the wishlist/review flow); default to home.
+      const next = safeNext(String(formData.get("next") || ""));
+      destination = next ?? "/";
+    }
   } catch (err) {
     console.error("Unexpected login error:", err);
     return { error: GENERIC_ERROR };

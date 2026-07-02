@@ -2,7 +2,11 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { CheckCircle2, Clock3, MapPin, Star } from "lucide-react";
 import { BookingForm } from "@/components/forms/booking-form";
+import { TourReviews } from "@/components/sections/tour-reviews";
+import { WishlistButton } from "@/components/ui/wishlist-button";
 import { formatPrice } from "@/lib/utils";
+import { getSavedTourIds } from "@/lib/wishlist";
+import { getCurrentUser } from "@/lib/auth";
 import { getTourBySlug } from "@/lib/tours";
 
 type TourDetailPageProps = {
@@ -18,6 +22,9 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
   if (!tour) {
     notFound();
   }
+
+  const [user, savedIds] = await Promise.all([getCurrentUser(), getSavedTourIds()]);
+  const isAuthenticated = Boolean(user);
 
   return (
     <div>
@@ -88,6 +95,8 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
                 ))}
               </div>
             </article>
+
+            <TourReviews tourId={tour.id} slug={tour.slug} />
           </div>
 
           <aside className="h-fit rounded-3xl border border-forest/10 bg-white p-7 shadow-soft lg:sticky lg:top-28">
@@ -95,6 +104,14 @@ export default async function TourDetailPage({ params }: TourDetailPageProps) {
             <p className="mt-1 text-3xl font-bold text-forest">
               {formatPrice(tour.price)}
             </p>
+            <div className="mt-5">
+              <WishlistButton
+                tourId={tour.id}
+                initialSaved={savedIds.has(tour.id)}
+                isAuthenticated={isAuthenticated}
+                variant="inline"
+              />
+            </div>
             <BookingForm tourId={tour.id} />
           </aside>
         </div>

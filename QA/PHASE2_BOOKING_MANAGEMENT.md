@@ -7,11 +7,11 @@
 
 Hoàn thành nốt các mục còn lại của **Phase 2** trong `FEATURE_ANALYSIS.md`. Ba nhóm chức năng:
 
-| Thành phần | Mô tả |
-|---|---|
-| **Lịch sử đặt tour** (`/profile`) | Khách đã đăng nhập xem lại toàn bộ booking của **chính mình** (kể cả booking đã hủy), với mã đặt chỗ, tên tour, ngày đi, số khách, ghi chú, badge trạng thái |
-| **Modal "Chi tiết"** (`/dashboard/bookings`) | Admin bấm xem đầy đủ thông tin 1 booking (tên, email, SĐT, tour, ngày đi, số khách, ghi chú đầy đủ, ngày tạo) mà không rời trang |
-| **Nút "Xuất CSV"** (`/dashboard/bookings`) | Admin tải toàn bộ danh sách booking ra file CSV mở được bằng Excel (đúng tiếng Việt) để làm báo cáo |
+| Thành phần                                   | Mô tả                                                                                                                                                        |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Lịch sử đặt tour** (`/profile`)            | Khách đã đăng nhập xem lại toàn bộ booking của **chính mình** (kể cả booking đã hủy), với mã đặt chỗ, tên tour, ngày đi, số khách, ghi chú, badge trạng thái |
+| **Modal "Chi tiết"** (`/dashboard/bookings`) | Admin bấm xem đầy đủ thông tin 1 booking (tên, email, SĐT, tour, ngày đi, số khách, ghi chú đầy đủ, ngày tạo) mà không rời trang                             |
+| **Nút "Xuất CSV"** (`/dashboard/bookings`)   | Admin tải toàn bộ danh sách booking ra file CSV mở được bằng Excel (đúng tiếng Việt) để làm báo cáo                                                          |
 
 ### Cơ chế liên kết booking ↔ tài khoản (quan trọng nhất)
 
@@ -63,6 +63,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 3. Vào `/profile`, kéo xuống mục **"Lịch sử đặt tour"**
 
 **Kết quả mong đợi:**
+
 - Booking vừa tạo xuất hiện trong danh sách
 - Hiển thị đúng: tên tour (bấm được, dẫn tới trang tour), **mã đặt chỗ** (VD `A1B2C3D4`), ngày đi (định dạng tiếng Việt), số khách, ngày đặt, ghi chú (nếu có)
 - Badge trạng thái hiện **"Chờ xác nhận"** (màu vàng/gold)
@@ -77,6 +78,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 3. Đăng nhập lại User A → vào `/profile`
 
 **Kết quả mong đợi:**
+
 - Booking vừa đặt ẩn danh **KHÔNG** xuất hiện trong lịch sử của User A (vì `user_id = NULL`)
 - Admin vào `/dashboard/bookings` thì **vẫn thấy** booking này (đúng thiết kế)
 
@@ -89,6 +91,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 3. Đăng nhập lại **User A** → `/profile`
 
 **Kết quả mong đợi:**
+
 - Trong lịch sử của User A, booking đó **vẫn hiện** nhưng badge chuyển thành **"Đã hủy"** (màu đỏ)
 - (Đối chiếu: ở dashboard admin, booking này đã **biến mất** khỏi bảng — hành vi đúng do soft-delete filter)
 
@@ -100,6 +103,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 2. Vào `/profile`
 
 **Kết quả mong đợi:**
+
 - Mục "Lịch sử đặt tour" hiện khung nét đứt với dòng "Bạn chưa có yêu cầu đặt tour nào khi đăng nhập bằng tài khoản này." + nút **"Khám phá tour ngay"** dẫn tới `/tours`
 - Không có số đếm "N yêu cầu"
 
@@ -111,6 +115,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 2. Bấm nút **"Chi tiết"** ở 1 row bất kỳ
 
 **Kết quả mong đợi:**
+
 - Modal mở giữa màn hình, nền mờ phía sau, trang **không cuộn được** khi modal mở
 - Hiển thị đầy đủ: mã đặt chỗ, badge trạng thái, họ tên, email, SĐT, tour, ngày đi, số khách, ngày tạo (có giờ), và **ghi chú đầy đủ** (không bị cắt như ngoài bảng)
 - Nếu booking không có ghi chú → hiện "Khách không để lại ghi chú."
@@ -124,6 +129,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 2. Mở file `bookings-YYYY-MM-DD.csv` vừa tải bằng **Microsoft Excel** (hoặc Google Sheets)
 
 **Kết quả mong đợi:**
+
 - File tải về ngay, tên có ngày hôm nay
 - 10 cột: Mã, Khách hàng, Email, Số điện thoại, Tour, Ngày đi, Số khách, Trạng thái, Ghi chú, Ngày tạo
 - **Tiếng Việt hiển thị đúng** trong Excel (không bị lỗi font kiểu `TÃªn`) — nhờ BOM UTF-8
@@ -141,6 +147,7 @@ Trước đây bảng `bookings` **không có** cột liên kết với tài kho
 3. Vào `/profile` của User B
 
 **Kết quả mong đợi:**
+
 - Lịch sử của User B **KHÔNG** chứa booking của User A
 - User B chỉ thấy booking do chính User B tạo (hoặc empty state nếu chưa có)
 

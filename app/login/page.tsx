@@ -5,6 +5,7 @@ type LoginPageProps = {
   searchParams: Promise<{
     error?: string;
     registered?: string;
+    next?: string;
   }>;
 };
 
@@ -29,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               Tài khoản này không có quyền quản trị. Chỉ admin mới vào dashboard.
             </p>
           ) : null}
-          <AuthForm action={login} mode="login" />
+          <AuthForm action={login} mode="login" next={query.next} />
         </div>
       </div>
     </section>

@@ -71,7 +71,9 @@ test("User A: register, book a tour, and see it in /profile history", async ({ p
   await page.fill('input[name="travel_date"]', travelDate);
   await page.fill('input[name="guests"]', "2");
   await page.fill('textarea[name="note"]', MARKER);
-  await page.click('button[type="submit"]');
+  // Target the booking submit specifically — the tour detail page also has a
+  // review form ("Gửi đánh giá") whose submit button precedes this one in the DOM.
+  await page.getByRole("button", { name: "Gửi yêu cầu đặt tour" }).click();
 
   await page.waitForURL(/\/booking-confirmed/, { timeout: 20_000 });
   bookingRef = new URL(page.url()).searchParams.get("ref") ?? "";
