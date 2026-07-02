@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Menu, User, X } from "lucide-react";
+import { Heart, LogOut, Menu, User, X } from "lucide-react";
 import { useState } from "react";
 import { logout } from "@/lib/actions/auth";
 
@@ -13,7 +13,13 @@ const navItems = [
   { href: "/contact", label: "Liên hệ" }
 ];
 
-export function MobileNav({ displayName }: { displayName?: string | null }) {
+export function MobileNav({
+  displayName,
+  wishlistCount = 0
+}: {
+  displayName?: string | null;
+  wishlistCount?: number;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -39,6 +45,19 @@ export function MobileNav({ displayName }: { displayName?: string | null }) {
                 {item.label}
               </Link>
             ))}
+            <Link
+              className="flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-medium text-ink hover:bg-cream"
+              href="/wishlist"
+              onClick={() => setOpen(false)}
+            >
+              <Heart className="h-4 w-4" />
+              <span>Yêu thích</span>
+              {wishlistCount > 0 ? (
+                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-earth px-1.5 text-xs font-bold text-white">
+                  {wishlistCount}
+                </span>
+              ) : null}
+            </Link>
           </nav>
           {displayName ? (
             <div className="mt-3 grid gap-2">

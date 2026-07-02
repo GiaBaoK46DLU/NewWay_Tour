@@ -7,6 +7,8 @@ import { useFormStatus } from "react-dom";
 type AuthFormProps = {
   mode: "login" | "register";
   action: (state: unknown, formData: FormData) => Promise<{ error?: string } | void>;
+  /** Relative path to return to after a successful login. */
+  next?: string;
 };
 
 function SubmitButton({ mode }: { mode: AuthFormProps["mode"] }) {
@@ -27,11 +29,12 @@ function SubmitButton({ mode }: { mode: AuthFormProps["mode"] }) {
   );
 }
 
-export function AuthForm({ mode, action }: AuthFormProps) {
+export function AuthForm({ mode, action, next }: AuthFormProps) {
   const [state, formAction] = useActionState(action, null);
 
   return (
     <form action={formAction} className="grid gap-4">
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       {mode === "register" ? (
         <input
           className="h-12 rounded-2xl border border-forest/10 bg-paper px-4 text-sm outline-none focus:border-forest"

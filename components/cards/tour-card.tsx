@@ -3,24 +3,43 @@ import Image from "next/image";
 import { Clock3, MapPin, Star } from "lucide-react";
 import type { Tour } from "@/types";
 import { formatPrice } from "@/lib/utils";
+import { WishlistButton } from "@/components/ui/wishlist-button";
 
-export function TourCard({ tour }: { tour: Tour }) {
+export function TourCard({
+  tour,
+  saved = false,
+  isAuthenticated = false
+}: {
+  tour: Tour;
+  saved?: boolean;
+  isAuthenticated?: boolean;
+}) {
   return (
-    <article className="group overflow-hidden rounded-3xl border border-forest/10 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft">
-      <Link href={`/tours/${tour.slug}`}>
-        <div className="relative h-64 overflow-hidden">
-          <Image
-            alt={tour.title}
-            className="object-cover transition duration-500 group-hover:scale-105"
-            fill
-            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-            src={tour.image_url}
-          />
-          <div className="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-forest backdrop-blur">
-            {tour.tour_type}
+    <article
+      className="group overflow-hidden rounded-3xl border border-forest/10 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:shadow-soft"
+      data-testid="tour-card"
+    >
+      <div className="relative">
+        <WishlistButton
+          tourId={tour.id}
+          initialSaved={saved}
+          isAuthenticated={isAuthenticated}
+        />
+        <Link href={`/tours/${tour.slug}`}>
+          <div className="relative h-64 overflow-hidden">
+            <Image
+              alt={tour.title}
+              className="object-cover transition duration-500 group-hover:scale-105"
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+              src={tour.image_url}
+            />
+            <div className="absolute left-4 top-4 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-forest backdrop-blur">
+              {tour.tour_type}
+            </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      </div>
       <div className="p-6">
         <div className="mb-3 flex items-center justify-between gap-3">
           <span className="inline-flex items-center gap-1 text-sm font-semibold text-mist">
@@ -45,7 +64,7 @@ export function TourCard({ tour }: { tour: Tour }) {
             <Clock3 className="h-4 w-4 text-forest" />
             {tour.duration}
           </span>
-          <span className="text-lg font-bold text-forest">
+          <span className="text-lg font-bold text-forest" data-testid="tour-price">
             {formatPrice(tour.price)}
           </span>
         </div>

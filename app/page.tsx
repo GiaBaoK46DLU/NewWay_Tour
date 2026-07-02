@@ -5,7 +5,10 @@ import { TourCard } from "@/components/cards/tour-card";
 import { HeroSection } from "@/components/sections/hero-section";
 import { TestimonialSection } from "@/components/sections/testimonial-section";
 import { ButtonLink } from "@/components/ui/button-link";
-import { blogPosts, destinations, sampleTours } from "@/lib/data";
+import { blogPosts, destinations } from "@/lib/data";
+import { getTours } from "@/lib/tours";
+import { getCurrentUser } from "@/lib/auth";
+import { getSavedTourIds } from "@/lib/wishlist";
 
 const benefits = [
   {
@@ -34,7 +37,15 @@ const benefits = [
   }
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [tours, user, savedIds] = await Promise.all([
+    getTours(),
+    getCurrentUser(),
+    getSavedTourIds()
+  ]);
+  const isAuthenticated = Boolean(user);
+  const featuredTours = tours.slice(0, 6);
+
   return (
     <>
       <HeroSection />
@@ -53,8 +64,13 @@ export default function HomePage() {
             </ButtonLink>
           </div>
           <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
-            {sampleTours.slice(0, 6).map((tour) => (
-              <TourCard key={tour.id} tour={tour} />
+            {featuredTours.map((tour) => (
+              <TourCard
+                key={tour.id}
+                tour={tour}
+                saved={savedIds.has(tour.id)}
+                isAuthenticated={isAuthenticated}
+              />
             ))}
           </div>
         </div>

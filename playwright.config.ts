@@ -18,5 +18,15 @@ export default defineConfig({
     trace: "off",
     screenshot: "only-on-failure"
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }]
+  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  // Reuse an already-running dev server (started separately) when present;
+  // otherwise start one. Phase 2 tests need Supabase configured in .env.local;
+  // the Phase 3 UX tests (filter/sort, wishlist, reviews) run purely client-side
+  // and don't depend on it.
+  webServer: {
+    command: "npm run dev",
+    url: "http://localhost:3000",
+    reuseExistingServer: true,
+    timeout: 120_000
+  }
 });
